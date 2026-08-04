@@ -537,7 +537,7 @@
   </header>
 
   <section aria-labelledby="k2-h">
-    <h2 class="eyebrow" id="k2-h">표 1 — 메인 시세</h2>
+    <h2 class="eyebrow" id="k2-h">표 1 — DOWN 시세</h2>
     <div class="k2-card">
       <div class="k2-head">
         <div>
@@ -592,12 +592,12 @@
   </section>
 
   <section aria-labelledby="cn-h">
-    <h2 class="eyebrow" id="cn-h">표 2 — 해외 원자재 시세</h2>
+    <h2 class="eyebrow" id="cn-h">표 2 — 참고용</h2>
     <div class="cn-card">
       <div class="cn-head">
         <div>
-          <h3>중국 다운 시세</h3>
-          <div class="cn-sub">GB/T 14272-2021 · 80% 충전율 기준 · 중국 시세사이트 1(en.cfd.com.cn) · 시세사이트 2(cn-down.com)</div>
+          <h3>참고용 중국 시세</h3>
+          <div class="cn-sub">GB/T 14272-2021 · GOOSE/DUCK 90/10 · 80/20 · 날짜별 시세 (USD/kg)</div>
         </div>
         <div class="fx-chip">
           <span>적용환율 (CNY→USD)</span>
@@ -605,21 +605,21 @@
         </div>
       </div>
       <div class="legend" id="cn-legend">
-        <button class="legend-item" data-series="s1_goose" type="button">
-          <svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" style="fill:var(--series-goose)"/></svg>
-          시세사이트1 구스
+        <button class="legend-item" data-series="ggd9010" type="button">
+          <svg width="18" height="10" viewBox="0 0 18 10"><line x1="1" y1="5" x2="17" y2="5" stroke="var(--series-goose)" stroke-width="2.25" stroke-linecap="round" stroke-dasharray="5 3.5"/></svg>
+          GOOSE 90/10
         </button>
-        <button class="legend-item" data-series="s1_duck" type="button">
-          <svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" style="fill:var(--series-duck)"/></svg>
-          시세사이트1 덕
+        <button class="legend-item" data-series="gdd9010" type="button">
+          <svg width="18" height="10" viewBox="0 0 18 10"><line x1="1" y1="5" x2="17" y2="5" stroke="var(--series-duck)" stroke-width="2.25" stroke-linecap="round" stroke-dasharray="5 3.5"/></svg>
+          DUCK 90/10
         </button>
-        <button class="legend-item" data-series="s2_goose" type="button">
-          <svg width="12" height="12" viewBox="0 0 12 12"><polygon points="6,1 11,10 1,10" style="fill:var(--series-goose)"/></svg>
-          시세사이트2 구스
+        <button class="legend-item" data-series="ggd8020" type="button">
+          <svg width="18" height="10" viewBox="0 0 18 10"><line x1="1" y1="5" x2="17" y2="5" stroke="var(--series-goose)" stroke-width="2.25" stroke-linecap="round"/></svg>
+          GOOSE 80/20
         </button>
-        <button class="legend-item" data-series="s2_duck" type="button">
-          <svg width="12" height="12" viewBox="0 0 12 12"><polygon points="6,1 11,10 1,10" style="fill:var(--series-duck)"/></svg>
-          시세사이트2 덕
+        <button class="legend-item" data-series="gdd8020" type="button">
+          <svg width="18" height="10" viewBox="0 0 18 10"><line x1="1" y1="5" x2="17" y2="5" stroke="var(--series-duck)" stroke-width="2.25" stroke-linecap="round"/></svg>
+          DUCK 80/20
         </button>
       </div>
       <div class="cn-filter" id="cn-filter">
@@ -637,29 +637,9 @@
         <button class="btn ghost download-btn" id="cn-download-btn" type="button">+DOWNLOAD</button>
       </div>
       <div class="chart-svg-wrap" id="cn-chart-wrap" style="margin-top:8px;margin-bottom:16px;"></div>
-      <div class="table-scroll">
-        <table class="cn-table">
-          <thead>
-            <tr>
-              <th rowspan="2">날짜</th>
-              <th class="grp" colspan="2">중국 시세사이트 1</th>
-              <th class="grp" colspan="2">중국 시세사이트 2</th>
-              <th rowspan="2" class="num">적용환율</th>
-            </tr>
-            <tr>
-              <th class="num">구스 단가</th>
-              <th class="num">덕 단가</th>
-              <th class="num">구스 단가</th>
-              <th class="num">덕 단가</th>
-            </tr>
-          </thead>
-          <tbody id="cn-table-body"></tbody>
-        </table>
-      </div>
       <div class="cn-note">해당 시세는 당사 스펙과 맞지 않으니 참고용으로만 봐주세요.</div>
       <div class="cn-meta-row">
         <span id="cn-updated"></span>
-        <span id="cn-blocker"></span>
       </div>
     </div>
   </section>
@@ -798,46 +778,63 @@
     return { diff: diff, pct: pct, cls: cls, arrow: arrow };
   }
 
-  /* ---------------- 표 2: 중국 다운 시세 ---------------- */
-  var FX = { date: "2026-08-03", usdPerCny: 0.14808 }; // CNY→USD, 최신 고시환율(외부 검색 기준)
+  /* ---------------- 표 2: 참고용 중국 시세 ---------------- */
+  var FX = { date: "2026-08-04", usdPerCny: 0.14802 }; // CNY→USD, 최신 고시환율(외부 검색 기준)
 
-  // 실측값 — 중국 시세사이트 1(en.cfd.com.cn), GB/T 14272-2021, 80% 등급
-  var CN_SITE1_HISTORY = [
-    { date: "2026-07-24", goose_cny: 750.59, duck_cny: 452.33 },
-    { date: "2026-07-31", goose_cny: 747.37, duck_cny: 449.98 }
+  // 실측값 — en.cfd.com.cn, GB/T 14272-2021. 2026-07-31까지는 직접 크롤링/제공 자료로 확보.
+  var CN_HISTORY = [
+    { date: "2026-03-06", ggd9010: 903.0, gdd9010: 550.36, ggd8020: 746.83, gdd8020: 458.24 },
+    { date: "2026-03-13", ggd9010: 893.58, gdd9010: 544.86, ggd8020: 739.16, gdd8020: 454.36 },
+    { date: "2026-03-20", ggd9010: 885.32, gdd9010: 538.53, ggd8020: 731.56, gdd8020: 449.37 },
+    { date: "2026-03-27", ggd9010: 883.11, gdd9010: 537.28, ggd8020: 729.61, gdd8020: 447.31 },
+    { date: "2026-04-03", ggd9010: 886.04, gdd9010: 538.59, ggd8020: 731.81, gdd8020: 448.19 },
+    { date: "2026-04-10", ggd9010: 892.67, gdd9010: 541.35, ggd8020: 737.82, gdd8020: 450.74 },
+    { date: "2026-04-17", ggd9010: 900.45, gdd9010: 545.20, ggd8020: 744.32, gdd8020: 453.90 },
+    { date: "2026-04-24", ggd9010: 918.01, gdd9010: 551.24, ggd8020: 756.10, gdd8020: 459.44 },
+    { date: "2026-05-08", ggd9010: 927.14, gdd9010: 561.00, ggd8020: 764.37, gdd8020: 467.50 },
+    { date: "2026-05-15", ggd9010: 934.68, gdd9010: 562.88, ggd8020: 770.32, gdd8020: 468.91 },
+    { date: "2026-05-22", ggd9010: 941.21, gdd9010: 536.53, ggd8020: 775.40, gdd8020: 469.48 },
+    { date: "2026-05-29", ggd9010: 942.48, gdd9010: 564.15, ggd8020: 775.40, gdd8020: 469.48 },
+    { date: "2026-06-05", ggd9010: 952.84, gdd9010: 568.84, ggd8020: 784.54, gdd8020: 473.32 },
+    { date: "2026-06-12", ggd9010: 951.84, gdd9010: 568.22, ggd8020: 785.20, gdd8020: 473.13 },
+    { date: "2026-06-18", ggd9010: 948.04, gdd9010: 565.09, ggd8020: 782.27, gdd8020: 470.75 },
+    { date: "2026-06-26", ggd9010: 941.6, gdd9010: 561.35, ggd8020: 776.34, gdd8020: 466.86 },
+    { date: "2026-07-03", ggd9010: 934.18, gdd9010: 558.68, ggd8020: 770.14, gdd8020: 464.34 },
+    { date: "2026-07-10", ggd9010: 927.65, gdd9010: 555.15, ggd8020: 764.24, gdd8020: 460.67 },
+    { date: "2026-07-17", ggd9010: 921.11, gdd9010: 550.41, ggd8020: 758.68, gdd8020: 456.92 },
+    { date: "2026-07-24", ggd9010: 912.41, gdd9010: 545.58, ggd8020: 750.59, gdd8020: 452.33 },
+    { date: "2026-07-31", ggd9010: 907.94, gdd9010: 543.07, ggd8020: 747.37, gdd8020: 449.98 }
   ];
-  // 중국 시세사이트 2(cn-down.com)는 크롤링 대상에서 제외 (로그인+캡차 필요, 자동화 불가로 확정).
-  // 관리자 모드에서 수동 입력한 값이 있으면 여기 채워짐 (localStorage).
-  var CN_SITE2_HISTORY = [];
 
   var CN_STORAGE_KEY = "downsise_cn_overrides_v1";
   function loadCnOverrides() {
     try { return JSON.parse(localStorage.getItem(CN_STORAGE_KEY)) || {}; } catch (e) { return {}; }
   }
   function saveCnOverrides(o) { localStorage.setItem(CN_STORAGE_KEY, JSON.stringify(o)); }
-  var cnOverrides = loadCnOverrides(); // { "2026-07-31": { s1_goose, s1_duck, s2_goose, s2_duck } }
+  var cnOverrides = loadCnOverrides(); // { "2026-07-31": { ggd9010, gdd9010, ggd8020, gdd8020 } }
 
   var cnRangeWeeks = "all"; // "4" | "12" | "26" | "all" | "custom" | <number>
   var cnCustomRange = null; // { start, end }
-  var cnVisible = { s1_goose: true, s1_duck: true, s2_goose: true, s2_duck: true };
+  var cnVisible = { ggd9010: true, gdd9010: true, ggd8020: true, gdd8020: true };
   var CN_SERIES = [
-    { key: "s1_goose", color: "var(--series-goose)", shape: "circle", label: "시세1 구스" },
-    { key: "s1_duck", color: "var(--series-duck)", shape: "circle", label: "시세1 덕" },
-    { key: "s2_goose", color: "var(--series-goose)", shape: "triangle", label: "시세2 구스" },
-    { key: "s2_duck", color: "var(--series-duck)", shape: "triangle", label: "시세2 덕" }
+    { key: "ggd9010", color: "var(--series-goose)", dash: "5 3.5", label: "GOOSE 90/10" },
+    { key: "gdd9010", color: "var(--series-duck)", dash: "5 3.5", label: "DUCK 90/10" },
+    { key: "ggd8020", color: "var(--series-goose)", dash: null, label: "GOOSE 80/20" },
+    { key: "gdd8020", color: "var(--series-duck)", dash: null, label: "DUCK 80/20" }
   ];
 
   function cnMergedRows() {
     var dates = {};
-    CN_SITE1_HISTORY.forEach(function (r) { dates[r.date] = dates[r.date] || {}; dates[r.date].s1_goose = r.goose_cny; dates[r.date].s1_duck = r.duck_cny; });
-    CN_SITE2_HISTORY.forEach(function (r) { dates[r.date] = dates[r.date] || {}; dates[r.date].s2_goose = r.goose_cny; dates[r.date].s2_duck = r.duck_cny; });
+    CN_HISTORY.forEach(function (r) {
+      dates[r.date] = { ggd9010: r.ggd9010, gdd9010: r.gdd9010, ggd8020: r.ggd8020, gdd8020: r.gdd8020 };
+    });
     Object.keys(cnOverrides).forEach(function (d) { dates[d] = dates[d] || {}; });
 
     var rows = Object.keys(dates).sort().map(function (d) {
       var row = { date: d, fx: FX.usdPerCny };
       var base = dates[d];
       var ov = cnOverrides[d] || {};
-      ["s1_goose", "s1_duck", "s2_goose", "s2_duck"].forEach(function (k) {
+      ["ggd9010", "gdd9010", "ggd8020", "gdd8020"].forEach(function (k) {
         row[k] = ov[k] != null ? ov[k] : (base[k] != null ? base[k] : null);
         row[k + "_edited"] = ov[k] != null;
       });
@@ -861,18 +858,6 @@
     return rows;
   }
 
-  function cnPriceCell(cny, fieldKey, dateStr, edited) {
-    if (adminMode) {
-      var val = cny != null ? cny : "";
-      return '<input class="price-input" type="number" step="0.01" data-cn-field="' + fieldKey + '" data-cn-date="' + dateStr + '" value="' + val + '" placeholder="CNY" />';
-    }
-    if (cny == null) {
-      return '<span class="pending"><span class="dot"></span>확인 필요</span>';
-    }
-    var usd = cny * FX.usdPerCny;
-    return '<span class="usd">$' + usd.toFixed(2) + '</span><span class="cny">¥' + fmt.format(cny) + '</span>' + (edited ? '<span class="edited-tag">수정됨</span>' : '');
-  }
-
   function cnPathSegments(vals, xFn, yFn) {
     var segs = [], cur = null;
     for (var idx = 0; idx < vals.length; idx++) {
@@ -883,17 +868,6 @@
     if (cur) segs.push(cur);
     return segs;
   }
-  function cnMarkerMarkup(shape, cx, cy, color) {
-    if (shape === "triangle") {
-      var r = 4.2;
-      var p1 = cx.toFixed(1) + "," + (cy - r).toFixed(1);
-      var p2 = (cx + r * 0.87).toFixed(1) + "," + (cy + r * 0.5).toFixed(1);
-      var p3 = (cx - r * 0.87).toFixed(1) + "," + (cy + r * 0.5).toFixed(1);
-      return '<polygon points="' + p1 + " " + p2 + " " + p3 + '" fill="' + color + '"/>';
-    }
-    return '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="3.3" fill="' + color + '"/>';
-  }
-
   function renderCnChart(rows) {
     var W = 1000, H = 260, padL = 46, padR = 16, padT = 16, padB = 26;
     var innerW = W - padL - padR, innerH = H - padT - padB;
@@ -943,13 +917,10 @@
     CN_SERIES.forEach(function (s) {
       if (!cnVisible[s.key]) return;
       var vals = seriesVals[s.key];
+      var dashAttr = s.dash ? ' stroke-dasharray="' + s.dash + '"' : "";
       cnPathSegments(vals, x, y).forEach(function (d) {
-        seriesMarkup += '<path d="' + d + '" fill="none" stroke="' + s.color + '" stroke-width="1.75" stroke-dasharray="5 3"/>';
+        seriesMarkup += '<path d="' + d + '" fill="none" stroke="' + s.color + '" stroke-width="1.75"' + dashAttr + '/>';
       });
-      for (var idx = 0; idx < vals.length; idx++) {
-        if (vals[idx] == null) continue;
-        seriesMarkup += cnMarkerMarkup(s.shape, x(idx), y(vals[idx]), s.color);
-      }
     });
 
     var svg = '<svg class="trend" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="중국 다운 시세 추이">' +
@@ -995,44 +966,10 @@
   }
 
   function renderCnTable() {
-    var rows = cnFilteredRows();
-    renderCnChart(rows);
-    var body = document.getElementById("cn-table-body");
-    if (!rows.length) {
-      body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px;">선택한 기간에 데이터가 없습니다</td></tr>';
-    } else {
-      body.innerHTML = rows.slice().reverse().map(function (r) {
-        return '<tr>' +
-          '<td>' + r.date + '</td>' +
-          '<td class="num cn-price">' + cnPriceCell(r.s1_goose, "s1_goose", r.date, r.s1_goose_edited) + '</td>' +
-          '<td class="num cn-price">' + cnPriceCell(r.s1_duck, "s1_duck", r.date, r.s1_duck_edited) + '</td>' +
-          '<td class="num cn-price">' + cnPriceCell(r.s2_goose, "s2_goose", r.date, r.s2_goose_edited) + '</td>' +
-          '<td class="num cn-price">' + cnPriceCell(r.s2_duck, "s2_duck", r.date, r.s2_duck_edited) + '</td>' +
-          '<td class="num" style="font-family:var(--font-mono);font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px;">' + r.fx.toFixed(4) + '</td>' +
-          '</tr>';
-      }).join("");
-    }
-
-    if (adminMode) {
-      body.querySelectorAll("[data-cn-field]").forEach(function (input) {
-        input.addEventListener("change", function () {
-          var d = input.getAttribute("data-cn-date");
-          var f = input.getAttribute("data-cn-field");
-          var v = parseFloat(input.value);
-          cnOverrides[d] = cnOverrides[d] || {};
-          if (!isNaN(v)) { cnOverrides[d][f] = v; } else { delete cnOverrides[d][f]; }
-          saveCnOverrides(cnOverrides);
-          showToast("중국 다운 시세가 저장되었습니다");
-          renderCnTable();
-        });
-      });
-    }
-
+    renderCnChart(cnFilteredRows());
     document.getElementById("fx-rate-label").textContent = "1 CNY ≈ $" + FX.usdPerCny.toFixed(4) + " (" + FX.date + " 기준)";
-    document.getElementById("cn-updated").textContent = "최근 갱신: " + (CN_SITE1_HISTORY[CN_SITE1_HISTORY.length - 1] || {}).date + " · 주 1회 자동 갱신";
-    document.getElementById("cn-blocker").innerHTML = CN_SITE2_HISTORY.length
-      ? ""
-      : '<span class="pending"><span class="dot"></span>시세사이트 2는 자동 수집을 하지 않아 관리자 모드에서 수동 입력이 필요합니다</span>';
+    var cnLast = CN_HISTORY[CN_HISTORY.length - 1] || {};
+    document.getElementById("cn-updated").textContent = "최근 갱신: " + (cnLast.date || "-") + " · 주 1회 자동 갱신";
   }
 
   document.getElementById("cn-filter").addEventListener("click", function (e) {
@@ -1410,7 +1347,7 @@
       if (rows.length < 2) return;
       var totalDays = Math.round((new Date(rows[rows.length - 1].date) - new Date(rows[0].date)) / 86400000);
       var current = k2RangeDays != null ? k2RangeDays : totalDays;
-      var factor = e.deltaY < 0 ? 0.85 : 1 / 0.85;
+      var factor = e.deltaY < 0 ? 0.85 : 1 / 0.85; // 위로 스크롤 = 축소(줌인), 아래로 스크롤 = 확대(줌아웃)
       var next = Math.round(current * factor);
       next = Math.max(K2_MIN_ZOOM_DAYS, Math.min(totalDays, next));
       k2RangeDays = next >= totalDays ? null : next;
@@ -1726,13 +1663,13 @@
   });
 
   document.getElementById("cn-download-btn").addEventListener("click", function () {
-    var header = ["날짜", "시세사이트1 구스(USD)", "시세사이트1 구스(CNY)", "시세사이트1 덕(USD)", "시세사이트1 덕(CNY)", "시세사이트2 구스(USD)", "시세사이트2 구스(CNY)", "시세사이트2 덕(USD)", "시세사이트2 덕(CNY)", "적용환율(CNY→USD)"];
+    var header = ["날짜", "GOOSE 90/10(USD)", "GOOSE 90/10(CNY)", "DUCK 90/10(USD)", "DUCK 90/10(CNY)", "GOOSE 80/20(USD)", "GOOSE 80/20(CNY)", "DUCK 80/20(USD)", "DUCK 80/20(CNY)", "적용환율(CNY→USD)"];
     var rows = cnFilteredRows().map(function (r) {
       function pair(cny) { return cny == null ? ["", ""] : [Math.round(cny * FX.usdPerCny * 100) / 100, cny]; }
-      var s1g = pair(r.s1_goose), s1d = pair(r.s1_duck), s2g = pair(r.s2_goose), s2d = pair(r.s2_duck);
-      return [r.date].concat(s1g, s1d, s2g, s2d, [r.fx]);
+      var g9 = pair(r.ggd9010), d9 = pair(r.gdd9010), g8 = pair(r.ggd8020), d8 = pair(r.gdd8020);
+      return [r.date].concat(g9, d9, g8, d8, [r.fx]);
     });
-    saveCsv("중국_다운_시세_" + todayCompact() + ".csv", rowsToCsv(header, rows));
+    saveCsv("참고용_중국_시세_" + todayCompact() + ".csv", rowsToCsv(header, rows));
   });
 
   /* ---------------- wiring ---------------- */
