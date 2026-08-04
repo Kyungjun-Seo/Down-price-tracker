@@ -1,0 +1,1746 @@
+<title>다운 시세 — 구스·덕다운 원자재 가격 트래커</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #e7e6df;
+    --surface: #fbfaf7;
+    --surface-2: #f1efe6;
+    --border: #d9d6c9;
+    --ink: #201d17;
+    --ink-2: #59544a;
+    --muted: #8b8577;
+    --accent: #a3711f;
+    --accent-strong: #7c5518;
+    --accent-ink: #fffdf8;
+    --up: #c4362b;
+    --down: #2d5fa8;
+    --series-goose: #eb6834;
+    --series-goose-fill: rgba(235, 104, 52, 0.12);
+    --series-duck: #1baf7a;
+    --series-duck-fill: rgba(27, 175, 122, 0.12);
+    --shadow: 0 1px 2px rgba(32, 29, 23, 0.06), 0 8px 24px -12px rgba(32, 29, 23, 0.18);
+
+    --font-display: "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Malgun Gothic", -apple-system, sans-serif;
+    --font-body: "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Malgun Gothic", -apple-system, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", Consolas, "Roboto Mono", "Noto Sans Mono", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --bg: #17150f;
+      --surface: #201c14;
+      --surface-2: #241f16;
+      --border: #3a3526;
+      --ink: #f0ead9;
+      --ink-2: #bfb6a2;
+      --muted: #948d7a;
+      --accent: #d9a24e;
+      --accent-strong: #eec27c;
+      --accent-ink: #221806;
+      --up: #e2564a;
+      --down: #5c8fe0;
+      --series-goose: #d95926;
+      --series-goose-fill: rgba(217, 89, 38, 0.16);
+      --series-duck: #199e70;
+      --series-duck-fill: rgba(25, 158, 112, 0.18);
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #17150f;
+    --surface: #201c14;
+    --surface-2: #241f16;
+    --border: #3a3526;
+    --ink: #f0ead9;
+    --ink-2: #bfb6a2;
+    --muted: #948d7a;
+    --accent: #d9a24e;
+    --accent-strong: #eec27c;
+    --accent-ink: #221806;
+    --up: #e2564a;
+    --down: #5c8fe0;
+    --series-goose: #d95926;
+    --series-goose-fill: rgba(217, 89, 38, 0.16);
+    --series-duck: #199e70;
+    --series-duck-fill: rgba(25, 158, 112, 0.18);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --bg: #e7e6df;
+    --surface: #fbfaf7;
+    --surface-2: #f1efe6;
+    --border: #d9d6c9;
+    --ink: #201d17;
+    --ink-2: #59544a;
+    --muted: #8b8577;
+    --accent: #a3711f;
+    --accent-strong: #7c5518;
+    --accent-ink: #fffdf8;
+    --up: #c4362b;
+    --down: #2d5fa8;
+    --series-goose: #eb6834;
+    --series-goose-fill: rgba(235, 104, 52, 0.12);
+    --series-duck: #1baf7a;
+    --series-duck-fill: rgba(27, 175, 122, 0.12);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 28px 20px 64px;
+  }
+
+  /* ---------- Header ---------- */
+  header.top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand .mark {
+    width: 34px; height: 34px;
+    border-radius: 9px;
+    background: linear-gradient(155deg, var(--series-goose), var(--accent));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px;
+    flex: none;
+    box-shadow: var(--shadow);
+  }
+  .brand h1 {
+    font-family: var(--font-display);
+    font-size: 29px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+  .top-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--ink-2);
+    background: var(--surface-2);
+    white-space: nowrap;
+  }
+  .badge .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--muted);
+  }
+  .badge.sample .dot { background: var(--accent); }
+  button.admin-toggle {
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 7px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--ink-2);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  button.admin-toggle:hover { border-color: var(--accent); color: var(--ink); }
+  button.admin-toggle.on {
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-color: var(--accent);
+  }
+
+  /* ---------- Section labels ---------- */
+  h2.eyebrow {
+    font-family: var(--font-display);
+    font-size: 12.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--muted);
+    margin: 0 0 12px;
+  }
+  section { margin-bottom: 36px; }
+
+  /* ---------- Stat deltas (shared by K2 stat chips) ---------- */
+  .delta.up { color: var(--up); }
+  .delta.down { color: var(--down); }
+  .delta.flat { color: var(--muted); }
+
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; }
+  #k2-legend, #cn-legend { margin-bottom: 12px; }
+  .legend .item { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+  .legend .swatch { width: 10px; height: 10px; border-radius: 3px; }
+  .legend-item {
+    display: flex; align-items: center; gap: 6px;
+    font-family: var(--font-body); font-size: 13px; font-weight: 600; color: var(--ink-2);
+    background: transparent; border: none; padding: 4px 2px; cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .legend-item .swatch { width: 10px; height: 10px; border-radius: 3px; transition: background 0.15s; }
+  .legend-item.off { opacity: 0.4; }
+  .legend-item.off .swatch { background: transparent !important; border: 1.5px solid var(--muted); }
+  .download-btn { font-size: 12px; font-weight: 700; letter-spacing: 0.02em; }
+  .chart-svg-wrap { position: relative; }
+  svg.trend { display: block; width: 100%; height: auto; overflow: visible; }
+  .gridline { stroke: var(--border); stroke-width: 1; }
+  .axis-label { font-family: var(--font-mono); font-size: 10.5px; fill: var(--muted); }
+  .line-goose { fill: none; stroke: var(--series-goose); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .line-duck { fill: none; stroke: var(--series-duck); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .area-goose { fill: var(--series-goose-fill); }
+  .area-duck { fill: var(--series-duck-fill); }
+  .endpoint { stroke: var(--surface); stroke-width: 2; }
+  .end-label { font-family: var(--font-mono); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .crosshair-line { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0; pointer-events: none; }
+  .hover-dot { opacity: 0; pointer-events: none; stroke: var(--surface); stroke-width: 2; }
+  .hover-capture { fill: transparent; cursor: crosshair; }
+  .tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: var(--ink);
+    color: var(--bg);
+    font-size: 12px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    line-height: 1.5;
+    opacity: 0;
+    transform: translate(-50%, -110%);
+    white-space: nowrap;
+    box-shadow: var(--shadow);
+    z-index: 5;
+  }
+  .tooltip b { font-variant-numeric: tabular-nums; }
+  .tooltip .row { display: flex; align-items: center; gap: 6px; }
+  .tooltip .sw { width: 7px; height: 7px; border-radius: 2px; display: inline-block; }
+
+  /* ---------- Table ---------- */
+  .table-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow); }
+  table { width: 100%; border-collapse: collapse; min-width: 720px; }
+  thead th {
+    text-align: left;
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+    white-space: nowrap;
+  }
+  thead th.num, tbody td.num { text-align: right; }
+  thead th.sortable { cursor: pointer; user-select: none; }
+  thead th.sortable:hover { color: var(--ink-2); }
+  tbody td {
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13.5px;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--surface-2); }
+  .type-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 700;
+  }
+  .type-chip .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .origin { display: block; font-size: 11.5px; color: var(--muted); font-weight: 500; margin-top: 1px; }
+  td.price { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-weight: 700; }
+  td.delta-cell { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-weight: 600; font-size: 12.5px; }
+  .edited-tag { font-size: 10px; font-weight: 700; color: var(--accent-strong); border: 1px solid var(--accent); border-radius: 5px; padding: 1px 5px; margin-left: 6px; vertical-align: 1px; }
+  .price-input {
+    width: 96px; font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+    font-size: 13.5px; font-weight: 700; padding: 5px 7px; border-radius: 7px;
+    border: 1px solid var(--border); background: var(--bg); color: var(--ink);
+  }
+  .price-input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+  .spark { display: block; }
+
+  /* ---------- Admin panel ---------- */
+  .admin-panel {
+    margin-top: 14px;
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    background: var(--surface-2);
+    display: none;
+  }
+  .admin-panel.show { display: block; }
+  .admin-panel .row-note { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+  .admin-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .admin-form select, .admin-form input {
+    font-family: var(--font-body); font-size: 13px; padding: 7px 9px;
+    border-radius: 7px; border: 1px solid var(--border); background: var(--surface); color: var(--ink);
+  }
+  .admin-form input[name="grade"] { width: 118px; }
+  .admin-form input[name="origin"] { width: 100px; }
+  .admin-form input[name="fill"] { width: 76px; }
+  .admin-form input[name="price"] { width: 96px; font-family: var(--font-mono); }
+  .btn {
+    font-family: var(--font-body); font-size: 13px; font-weight: 700; cursor: pointer;
+    border-radius: 7px; padding: 8px 13px; border: 1px solid var(--border); background: var(--surface); color: var(--ink);
+  }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .btn.ghost { background: transparent; }
+  .admin-actions { display: flex; gap: 8px; margin-top: 12px; }
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 999px;
+    font-size: 13px; font-weight: 600; opacity: 0; transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none; z-index: 20; box-shadow: var(--shadow);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ---------- Password modal ---------- */
+  .pw-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+    display: none; align-items: center; justify-content: center; z-index: 30;
+  }
+  .pw-overlay.show { display: flex; }
+  .pw-card {
+    width: 280px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+  .pw-card h3 { margin: 0 0 4px; font-family: var(--font-display); font-size: 16px; font-weight: 800; }
+  .pw-card p { margin: 0 0 12px; font-size: 12.5px; color: var(--muted); }
+  .pw-card input {
+    width: 100%; font-family: var(--font-mono); font-size: 15px; letter-spacing: 0.2em;
+    padding: 9px 10px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--bg); color: var(--ink); box-sizing: border-box;
+  }
+  .pw-card input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+  .pw-error { min-height: 16px; font-size: 12px; font-weight: 700; color: var(--up); margin-top: 6px; }
+  .pw-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+
+  /* ---------- K2 main table (표 1) ---------- */
+  .k2-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 18px 16px;
+    box-shadow: var(--shadow);
+  }
+  .k2-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .k2-head h3 {
+    margin: 0 0 3px;
+    font-family: var(--font-display);
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+  .k2-head .k2-sub { font-size: 12px; color: var(--muted); }
+  .k2-stats { display: flex; gap: 10px; flex-wrap: wrap; }
+  .k2-stat {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 12px;
+    min-width: 128px;
+  }
+  .k2-stat .label { font-size: 11px; color: var(--muted); font-weight: 600; margin-bottom: 4px; }
+  .k2-stat .value { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 18px; font-weight: 700; }
+  .k2-stat .value .unit { font-size: 11px; color: var(--muted); font-weight: 500; margin-left: 2px; }
+  .k2-stat .delta { font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; margin-top: 3px; }
+  .k2-admin-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+  .k2-admin-form input { width: 108px; }
+
+  /* ---------- China price table (표 2) ---------- */
+  .cn-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 18px 16px;
+    box-shadow: var(--shadow);
+  }
+  .cn-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .cn-head h3 {
+    margin: 0 0 3px;
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+  .cn-head .cn-sub { font-size: 12px; color: var(--muted); }
+  .fx-chip {
+    display: flex; flex-direction: column; align-items: flex-end; gap: 2px;
+    font-size: 11.5px; color: var(--muted); text-align: right;
+  }
+  .fx-chip b { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--ink-2); font-size: 13px; }
+  .cn-filter {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .cn-filter .chip {
+    font-family: var(--font-body); font-size: 12px; font-weight: 700;
+    padding: 6px 11px; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--surface-2); color: var(--ink-2); cursor: pointer;
+  }
+  .cn-filter .chip.active { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .cn-filter .range { display: flex; align-items: center; gap: 6px; margin-left: 4px; }
+  .cn-filter input[type="date"] {
+    font-family: var(--font-mono); font-size: 12px; padding: 5px 7px;
+    border-radius: 7px; border: 1px solid var(--border); background: var(--bg); color: var(--ink);
+  }
+  .cn-filter .sep { color: var(--muted); font-size: 12px; }
+  .cn-filter .download-btn { margin-left: auto; }
+  table.cn-table thead th, table.grouped-table thead th { position: sticky; top: 0; }
+  table.cn-table thead th.grp, table.grouped-table thead th.grp {
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+  table.grouped-table { table-layout: fixed; }
+  table.grouped-table thead th, table.grouped-table tbody td { white-space: normal; text-align: center; }
+  table.grouped-table thead tr:first-child th:nth-child(2),
+  table.grouped-table thead tr:first-child th:nth-child(3),
+  table.grouped-table thead tr:last-child th:nth-child(1),
+  table.grouped-table thead tr:last-child th:nth-child(4),
+  table.grouped-table tbody td:nth-child(2),
+  table.grouped-table tbody td:nth-child(5) {
+    border-left: 2px solid var(--border);
+  }
+  table.grouped-table thead tr:first-child th:nth-child(2) { background: var(--series-goose-fill); color: var(--series-goose); }
+  table.grouped-table thead tr:first-child th:nth-child(3) { background: var(--series-duck-fill); color: var(--series-duck); }
+  td.cn-price { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  td.cn-price .usd { font-weight: 700; }
+  td.cn-price .cny { display: block; font-size: 11px; color: var(--muted); font-weight: 500; margin-top: 1px; }
+  .pending {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11.5px; font-weight: 600; color: var(--muted);
+  }
+  .pending .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--down); opacity: 0.6; }
+  .cn-price input.price-input { width: 84px; }
+  .cn-note {
+    margin-top: 12px;
+    font-size: 12.5px;
+    color: var(--ink-2);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .cn-meta-row {
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+    margin-top: 10px; font-size: 11.5px; color: var(--muted);
+  }
+  .cn-meta-row a { color: var(--ink-2); }
+
+  /* ---------- Glossary carousel / footer ---------- */
+  .glossary-wrap { display: flex; align-items: stretch; gap: 8px; }
+  .glossary {
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    padding-bottom: 2px;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .glossary::-webkit-scrollbar { height: 6px; }
+  .glossary::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+  .glossary .g {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 15px;
+    flex: 0 0 232px;
+    scroll-snap-align: start;
+  }
+  .glossary .g h3 { margin: 0 0 4px; font-size: 13.5px; font-weight: 700; }
+  .glossary .g p { margin: 0; font-size: 12.5px; color: var(--ink-2); }
+  .gloss-arrow {
+    flex: none;
+    width: 34px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--ink-2);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .gloss-arrow:hover { border-color: var(--accent); color: var(--ink); }
+  @media (max-width: 760px) { .glossary .g { flex-basis: 200px; } }
+
+  footer {
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="mark">🪶</div>
+      <div>
+        <h1>[K2 KOREA] DOWN 대시보드</h1>
+      </div>
+    </div>
+    <div class="top-meta">
+      <span class="badge" id="date-badge"><span class="dot"></span></span>
+      <button class="admin-toggle" id="admin-toggle" type="button" aria-pressed="false">관리자 모드</button>
+    </div>
+  </header>
+
+  <section aria-labelledby="k2-h">
+    <h2 class="eyebrow" id="k2-h">표 1 — 메인 시세</h2>
+    <div class="k2-card">
+      <div class="k2-head">
+        <div>
+          <h3>K2 시세</h3>
+          <div class="k2-sub">RDS CHINA GOOSE DOWN 80/20 GREY 650FP+ · RDS CHINA DUCK DOWN 80/20 GREY 600FP+ · 날짜별 평균 (USD/kg)</div>
+        </div>
+        <div class="k2-stats">
+          <div class="k2-stat">
+            <div class="label">구스 최신값</div>
+            <div class="value" id="k2-goose-latest"></div>
+            <div class="delta" id="k2-goose-delta"></div>
+          </div>
+          <div class="k2-stat">
+            <div class="label">덕 최신값</div>
+            <div class="value" id="k2-duck-latest"></div>
+            <div class="delta" id="k2-duck-delta"></div>
+          </div>
+        </div>
+      </div>
+      <div class="legend" id="k2-legend">
+        <button class="legend-item" data-series="goose" type="button"><span class="swatch" style="background:var(--series-goose)"></span>구스 (650FP+)</button>
+        <button class="legend-item" data-series="duck" type="button"><span class="swatch" style="background:var(--series-duck)"></span>덕 (600FP+)</button>
+      </div>
+      <div class="cn-filter" id="k2-filter">
+        <button class="chip" data-range="1m">최근 1개월</button>
+        <button class="chip" data-range="6m">최근 6개월</button>
+        <button class="chip" data-range="1y">최근 1년</button>
+        <button class="chip active" data-range="all">전체</button>
+        <span class="range">
+          <span class="sep">직접 기간 검색</span>
+          <input type="date" id="k2-start" />
+          <span class="sep">~</span>
+          <input type="date" id="k2-end" />
+          <button class="btn ghost" id="k2-range-apply" type="button" style="padding:5px 10px;font-size:12px;">검색</button>
+        </span>
+        <button class="btn ghost download-btn" id="k2-download-btn" type="button">+DOWNLOAD</button>
+      </div>
+      <div class="chart-svg-wrap" id="k2-chart-wrap" style="margin-top:8px;"></div>
+      <div class="admin-panel" id="k2-admin-panel">
+        <div class="row-note">관리자 모드 — 새 날짜의 평균 시세를 직접 등록할 수 있습니다. 변경사항은 이 브라우저에만 저장됩니다.</div>
+        <form class="admin-form k2-admin-form" id="k2-add-form">
+          <input name="date" type="date" required />
+          <input name="goose" type="number" step="0.01" placeholder="구스 (USD/kg)" required />
+          <input name="duck" type="number" step="0.01" placeholder="덕 (USD/kg)" required />
+          <button class="btn primary" type="submit">시세 추가</button>
+          <button class="btn ghost" id="k2-upload-btn" type="button">엑셀 업로드</button>
+          <input type="file" id="k2-upload-input" accept=".xlsx" style="display:none;" />
+        </form>
+        <div class="row-note" id="k2-upload-status" style="margin-top:8px;"></div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="cn-h">
+    <h2 class="eyebrow" id="cn-h">표 2 — 해외 원자재 시세</h2>
+    <div class="cn-card">
+      <div class="cn-head">
+        <div>
+          <h3>중국 다운 시세</h3>
+          <div class="cn-sub">GB/T 14272-2021 · 80% 충전율 기준 · 중국 시세사이트 1(en.cfd.com.cn) · 시세사이트 2(cn-down.com)</div>
+        </div>
+        <div class="fx-chip">
+          <span>적용환율 (CNY→USD)</span>
+          <b id="fx-rate-label"></b>
+        </div>
+      </div>
+      <div class="legend" id="cn-legend">
+        <button class="legend-item" data-series="s1_goose" type="button">
+          <svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" style="fill:var(--series-goose)"/></svg>
+          시세사이트1 구스
+        </button>
+        <button class="legend-item" data-series="s1_duck" type="button">
+          <svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" style="fill:var(--series-duck)"/></svg>
+          시세사이트1 덕
+        </button>
+        <button class="legend-item" data-series="s2_goose" type="button">
+          <svg width="12" height="12" viewBox="0 0 12 12"><polygon points="6,1 11,10 1,10" style="fill:var(--series-goose)"/></svg>
+          시세사이트2 구스
+        </button>
+        <button class="legend-item" data-series="s2_duck" type="button">
+          <svg width="12" height="12" viewBox="0 0 12 12"><polygon points="6,1 11,10 1,10" style="fill:var(--series-duck)"/></svg>
+          시세사이트2 덕
+        </button>
+      </div>
+      <div class="cn-filter" id="cn-filter">
+        <button class="chip" data-range="4">최근 4주</button>
+        <button class="chip" data-range="12">최근 12주</button>
+        <button class="chip" data-range="26">최근 26주</button>
+        <button class="chip active" data-range="all">전체 (최대 1년)</button>
+        <span class="range">
+          <span class="sep">직접 기간 검색</span>
+          <input type="date" id="cn-start" />
+          <span class="sep">~</span>
+          <input type="date" id="cn-end" />
+          <button class="btn ghost" id="cn-range-apply" type="button" style="padding:5px 10px;font-size:12px;">검색</button>
+        </span>
+        <button class="btn ghost download-btn" id="cn-download-btn" type="button">+DOWNLOAD</button>
+      </div>
+      <div class="chart-svg-wrap" id="cn-chart-wrap" style="margin-top:8px;margin-bottom:16px;"></div>
+      <div class="table-scroll">
+        <table class="cn-table">
+          <thead>
+            <tr>
+              <th rowspan="2">날짜</th>
+              <th class="grp" colspan="2">중국 시세사이트 1</th>
+              <th class="grp" colspan="2">중국 시세사이트 2</th>
+              <th rowspan="2" class="num">적용환율</th>
+            </tr>
+            <tr>
+              <th class="num">구스 단가</th>
+              <th class="num">덕 단가</th>
+              <th class="num">구스 단가</th>
+              <th class="num">덕 단가</th>
+            </tr>
+          </thead>
+          <tbody id="cn-table-body"></tbody>
+        </table>
+      </div>
+      <div class="cn-note">해당 시세는 당사 스펙과 맞지 않으니 참고용으로만 봐주세요.</div>
+      <div class="cn-meta-row">
+        <span id="cn-updated"></span>
+        <span id="cn-blocker"></span>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="quality-h">
+    <h2 class="eyebrow" id="quality-h">DOWN 품질 기준</h2>
+    <div class="k2-card">
+      <div class="k2-head">
+        <div>
+          <h3>GOOSE / DUCK DOWN 80/20 기준 비교</h3>
+          <div class="k2-sub">EUROPE은 90/10 DOWN에 적용 · 한국(KS K 2620) · 중국(GB/T 14272) · 유럽(IDFB TESTING)</div>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table class="grouped-table">
+          <colgroup>
+            <col style="width:22%">
+            <col style="width:13%"><col style="width:13%"><col style="width:13%">
+            <col style="width:13%"><col style="width:13%"><col style="width:13%">
+          </colgroup>
+          <thead>
+            <tr>
+              <th rowspan="2">시험 항목</th>
+              <th class="grp" colspan="3">GOOSE DOWN 80/20</th>
+              <th class="grp" colspan="3">DUCK DOWN 80/20</th>
+            </tr>
+            <tr>
+              <th class="num">한국</th>
+              <th class="num">중국</th>
+              <th class="num">유럽</th>
+              <th class="num">한국</th>
+              <th class="num">중국</th>
+              <th class="num">유럽</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>다운 함량 (%)</td><td class="num">80 이상</td><td class="num">75 이상</td><td class="num">80.95 이상</td><td class="num">80 이상</td><td class="num">75 이상</td><td class="num">80.95 이상</td></tr>
+            <tr><td>솜털오라기 + 깃털오라기 (%)</td><td class="num">15 이하</td><td class="num">10 이하</td><td class="num">4.05 이하</td><td class="num">15 이하</td><td class="num">10 이하</td><td class="num">4.05 이하</td></tr>
+            <tr><td>육조깃털, 손상깃털, 협잡물 (%)</td><td class="num">5 이하</td><td class="num">1 이하</td><td class="num">5 이하</td><td class="num">5 이하</td><td class="num">1 이하</td><td class="num">5 이하</td></tr>
+            <tr><td>거위털 / 오리털 함량 (%)</td><td class="num">80 이상</td><td class="num">85 이상</td><td class="num">70 이상</td><td class="num">-</td><td class="num">-</td><td class="num">70 이상</td></tr>
+            <tr><td>충전도 (cm/30g)</td><td class="num">12 이상</td><td class="num">15.5 이상</td><td class="num">-</td><td class="num">12 이상</td><td class="num">14.5 이상</td><td class="num">-</td></tr>
+            <tr><td>충전성 (in³/30g)</td><td class="num">-</td><td class="num">-</td><td class="num">허용오차 -5%</td><td class="num">-</td><td class="num">-</td><td class="num">허용오차 -5%</td></tr>
+            <tr><td>산소가 (mg)</td><td class="num">10 이하</td><td class="num">5.6 이하</td><td class="num">20 이하</td><td class="num">10 이하</td><td class="num">5.6 이하</td><td class="num">20 이하</td></tr>
+            <tr><td>탁도 (mm)</td><td class="num">300 이상</td><td class="num">500 이상</td><td class="num">300 이상</td><td class="num">300 이상</td><td class="num">500 이상</td><td class="num">300 이상</td></tr>
+            <tr><td>수분율 (%)</td><td class="num">15 이하</td><td class="num">-</td><td class="num">13 이하</td><td class="num">15 이하</td><td class="num">-</td><td class="num">13 이하</td></tr>
+            <tr><td>유지분 (%)</td><td class="num">1.5 이하</td><td class="num">1.2 이하</td><td class="num">0.5 ~ 2.0</td><td class="num">1.5 이하</td><td class="num">1.2 이하</td><td class="num">0.5 ~ 2.0</td></tr>
+            <tr><td>냄새</td><td class="num">PASS</td><td class="num">PASS</td><td class="num">PASS</td><td class="num">PASS</td><td class="num">PASS</td><td class="num">PASS</td></tr>
+            <tr><td>블랙포인트 함유율 (%)<span class="origin">WHITE DOWN만 적용</span></td><td class="num">1 이하</td><td class="num">1 이하</td><td class="num">-</td><td class="num">1 이하</td><td class="num">1 이하</td><td class="num">-</td></tr>
+            <tr><td>알킬페놀류 (NP+OP)</td><td class="num">-</td><td class="num">10 이하</td><td class="num">-</td><td class="num">-</td><td class="num">10 이하</td><td class="num">-</td></tr>
+            <tr><td>알킬페놀류 (NP+OP+NPnEO+OPnEO)</td><td class="num">-</td><td class="num">100 이하</td><td class="num">-</td><td class="num">-</td><td class="num">100 이하</td><td class="num">-</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="gloss-h">
+    <h2 class="eyebrow" id="gloss-h">용어 안내</h2>
+    <div class="glossary-wrap">
+      <button class="gloss-arrow" id="gloss-prev" type="button" aria-label="이전">‹</button>
+      <div class="glossary" id="glossary-scroll">
+        <div class="g">
+          <h3>조성혼합률</h3>
+          <p>솜털·깃털·부러진 깃털·잔여물 등을 무게 기준으로 분류해 각 성분의 비율을 산출하는 시험입니다. 다운 함량이 규격을 충족하는지 확인하는 가장 기본적인 항목입니다.</p>
+        </div>
+        <div class="g">
+          <h3>우모혼합률</h3>
+          <p>깃털·솜털을 확대 관찰해 특징적인 구조로 거위·오리 등 원종을 판별하는 시험입니다. 구스다운/덕다운 표기가 실제와 맞는지 검증합니다.</p>
+        </div>
+        <div class="g">
+          <h3>충전성 (FILL POWER)</h3>
+          <p>일정 무게의 다운을 압축했다가 부풀렸을 때 차지하는 부피를 재는 지표. 수치가 높을수록 같은 무게로 더 큰 보온력을 내며, 시세도 함께 올라갑니다.</p>
+        </div>
+        <div class="g">
+          <h3>산소가</h3>
+          <p>다운 표면을 코팅한 유기물질의 양을 과망간산칼륨 적정으로 측정하는 청결도 시험. 수치가 낮을수록 더 깨끗한 원료임을 뜻합니다.</p>
+        </div>
+        <div class="g">
+          <h3>탁도</h3>
+          <p>시료에 남은 무기·유기·생물학적 입자량을 물에 풀어 측정하는 청결도 시험. 수치가 높을수록(맑을수록) 이물질이 적은 깨끗한 다운입니다.</p>
+        </div>
+        <div class="g">
+          <h3>수분율</h3>
+          <p>105~110℃ 오븐에서 건조시켜 무게 변화로 계산하는 수분 함량 시험. 너무 높으면 변질·악취의 원인이 되고, 8~12% 내외가 적정 범위입니다.</p>
+        </div>
+        <div class="g">
+          <h3>유지분</h3>
+          <p>용매로 추출해 무게를 재는 방식으로 시료에 남은 지방·기름의 양을 측정합니다. 과다하면 세탁 후에도 냄새·변색의 원인이 될 수 있습니다.</p>
+        </div>
+        <div class="g">
+          <h3>냄새</h3>
+          <p>사람이 후각으로 인지할 수 있는 휘발성 화합물의 정도를 등급(보통 5점 척도)으로 평가하는 관능 시험입니다. PASS 기준을 충족해야 합니다.</p>
+        </div>
+        <div class="g">
+          <h3>블랙포인트</h3>
+          <p>깃털·다운 샘플을 흰색·어두운색·경계색으로 손으로 분류해 비율을 산출하는 색상 시험. WHITE DOWN 등급에서 순백도를 검증할 때 사용됩니다.</p>
+        </div>
+      </div>
+      <button class="gloss-arrow" id="gloss-next" type="button" aria-label="다음">›</button>
+    </div>
+  </section>
+
+  <footer>
+    <span>다운 시세 — 프로토타입 대시보드</span>
+    <span id="footer-date"></span>
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="pw-overlay" id="pw-overlay">
+  <div class="pw-card">
+    <h3>관리자 모드</h3>
+    <p>비밀번호를 입력해주세요.</p>
+    <input type="password" id="pw-input" autocomplete="off" />
+    <div class="pw-error" id="pw-error"></div>
+    <div class="pw-actions">
+      <button class="btn ghost" id="pw-cancel" type="button">취소</button>
+      <button class="btn primary" id="pw-confirm" type="button">확인</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var fmt = new Intl.NumberFormat("ko-KR");
+  var adminMode = false;
+
+  function deltaInfo(price, prev) {
+    var diff = price - prev;
+    var pct = prev ? (diff / prev) * 100 : 0;
+    var cls = diff > 0 ? "up" : diff < 0 ? "down" : "flat";
+    var arrow = diff > 0 ? "▲" : diff < 0 ? "▼" : "—";
+    return { diff: diff, pct: pct, cls: cls, arrow: arrow };
+  }
+
+  /* ---------------- 표 2: 중국 다운 시세 ---------------- */
+  var FX = { date: "2026-08-03", usdPerCny: 0.14808 }; // CNY→USD, 최신 고시환율(외부 검색 기준)
+
+  // 실측값 — 중국 시세사이트 1(en.cfd.com.cn), GB/T 14272-2021, 80% 등급
+  var CN_SITE1_HISTORY = [
+    { date: "2026-07-24", goose_cny: 750.59, duck_cny: 452.33 },
+    { date: "2026-07-31", goose_cny: 747.37, duck_cny: 449.98 }
+  ];
+  // 중국 시세사이트 2(cn-down.com)는 크롤링 대상에서 제외 (로그인+캡차 필요, 자동화 불가로 확정).
+  // 관리자 모드에서 수동 입력한 값이 있으면 여기 채워짐 (localStorage).
+  var CN_SITE2_HISTORY = [];
+
+  var CN_STORAGE_KEY = "downsise_cn_overrides_v1";
+  function loadCnOverrides() {
+    try { return JSON.parse(localStorage.getItem(CN_STORAGE_KEY)) || {}; } catch (e) { return {}; }
+  }
+  function saveCnOverrides(o) { localStorage.setItem(CN_STORAGE_KEY, JSON.stringify(o)); }
+  var cnOverrides = loadCnOverrides(); // { "2026-07-31": { s1_goose, s1_duck, s2_goose, s2_duck } }
+
+  var cnRangeWeeks = "all"; // "4" | "12" | "26" | "all" | "custom" | <number>
+  var cnCustomRange = null; // { start, end }
+  var cnVisible = { s1_goose: true, s1_duck: true, s2_goose: true, s2_duck: true };
+  var CN_SERIES = [
+    { key: "s1_goose", color: "var(--series-goose)", shape: "circle", label: "시세1 구스" },
+    { key: "s1_duck", color: "var(--series-duck)", shape: "circle", label: "시세1 덕" },
+    { key: "s2_goose", color: "var(--series-goose)", shape: "triangle", label: "시세2 구스" },
+    { key: "s2_duck", color: "var(--series-duck)", shape: "triangle", label: "시세2 덕" }
+  ];
+
+  function cnMergedRows() {
+    var dates = {};
+    CN_SITE1_HISTORY.forEach(function (r) { dates[r.date] = dates[r.date] || {}; dates[r.date].s1_goose = r.goose_cny; dates[r.date].s1_duck = r.duck_cny; });
+    CN_SITE2_HISTORY.forEach(function (r) { dates[r.date] = dates[r.date] || {}; dates[r.date].s2_goose = r.goose_cny; dates[r.date].s2_duck = r.duck_cny; });
+    Object.keys(cnOverrides).forEach(function (d) { dates[d] = dates[d] || {}; });
+
+    var rows = Object.keys(dates).sort().map(function (d) {
+      var row = { date: d, fx: FX.usdPerCny };
+      var base = dates[d];
+      var ov = cnOverrides[d] || {};
+      ["s1_goose", "s1_duck", "s2_goose", "s2_duck"].forEach(function (k) {
+        row[k] = ov[k] != null ? ov[k] : (base[k] != null ? base[k] : null);
+        row[k + "_edited"] = ov[k] != null;
+      });
+      return row;
+    });
+
+    // 최대 1년(52주)치만 유지
+    if (rows.length > 52) rows = rows.slice(rows.length - 52);
+    return rows;
+  }
+
+  function cnFilteredRows() {
+    var rows = cnMergedRows();
+    if (cnRangeWeeks === "custom" && cnCustomRange) {
+      return rows.filter(function (r) { return r.date >= cnCustomRange.start && r.date <= cnCustomRange.end; });
+    }
+    if (cnRangeWeeks !== "all") {
+      var n = parseInt(cnRangeWeeks, 10);
+      return rows.slice(Math.max(0, rows.length - n));
+    }
+    return rows;
+  }
+
+  function cnPriceCell(cny, fieldKey, dateStr, edited) {
+    if (adminMode) {
+      var val = cny != null ? cny : "";
+      return '<input class="price-input" type="number" step="0.01" data-cn-field="' + fieldKey + '" data-cn-date="' + dateStr + '" value="' + val + '" placeholder="CNY" />';
+    }
+    if (cny == null) {
+      return '<span class="pending"><span class="dot"></span>확인 필요</span>';
+    }
+    var usd = cny * FX.usdPerCny;
+    return '<span class="usd">$' + usd.toFixed(2) + '</span><span class="cny">¥' + fmt.format(cny) + '</span>' + (edited ? '<span class="edited-tag">수정됨</span>' : '');
+  }
+
+  function cnPathSegments(vals, xFn, yFn) {
+    var segs = [], cur = null;
+    for (var idx = 0; idx < vals.length; idx++) {
+      if (vals[idx] == null) { if (cur) { segs.push(cur); cur = null; } continue; }
+      var cmd = (cur ? "L" : "M") + xFn(idx).toFixed(1) + "," + yFn(vals[idx]).toFixed(1);
+      cur = cur ? cur + " " + cmd : cmd;
+    }
+    if (cur) segs.push(cur);
+    return segs;
+  }
+  function cnMarkerMarkup(shape, cx, cy, color) {
+    if (shape === "triangle") {
+      var r = 4.2;
+      var p1 = cx.toFixed(1) + "," + (cy - r).toFixed(1);
+      var p2 = (cx + r * 0.87).toFixed(1) + "," + (cy + r * 0.5).toFixed(1);
+      var p3 = (cx - r * 0.87).toFixed(1) + "," + (cy + r * 0.5).toFixed(1);
+      return '<polygon points="' + p1 + " " + p2 + " " + p3 + '" fill="' + color + '"/>';
+    }
+    return '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="3.3" fill="' + color + '"/>';
+  }
+
+  function renderCnChart(rows) {
+    var W = 1000, H = 260, padL = 46, padR = 16, padT = 16, padB = 26;
+    var innerW = W - padL - padR, innerH = H - padT - padB;
+    var n = rows.length;
+    var wrap = document.getElementById("cn-chart-wrap");
+    if (!n) {
+      wrap.innerHTML = '<div style="padding:40px 0;text-align:center;color:var(--muted);font-size:13px;">표시할 데이터가 없습니다</div>';
+      return;
+    }
+
+    var seriesVals = {};
+    CN_SERIES.forEach(function (s) {
+      seriesVals[s.key] = rows.map(function (r) {
+        var cny = r[s.key];
+        return (cnVisible[s.key] && cny != null) ? cny * FX.usdPerCny : null;
+      });
+    });
+    var visibleVals = [];
+    CN_SERIES.forEach(function (s) { seriesVals[s.key].forEach(function (v) { if (v != null) visibleVals.push(v); }); });
+
+    if (!visibleVals.length) {
+      wrap.innerHTML = '<div style="padding:40px 0;text-align:center;color:var(--muted);font-size:13px;">표시할 항목이 없습니다 — 위 범례를 확인해주세요.</div>';
+      return;
+    }
+
+    var min = Math.min.apply(null, visibleVals), max = Math.max.apply(null, visibleVals);
+    var pad = (max - min) * 0.1 || max * 0.1 || 1;
+    min -= pad; max += pad;
+
+    var denom = n > 1 ? (n - 1) : 1;
+    function x(i) { return n > 1 ? padL + (innerW * i) / denom : padL + innerW / 2; }
+    function y(v) { return padT + innerH - ((v - min) / (max - min)) * innerH; }
+
+    var gridCount = 4, gridlines = "", axisLabels = "";
+    for (var g = 0; g <= gridCount; g++) {
+      var gv = min + ((max - min) * g) / gridCount;
+      var gy = y(gv);
+      gridlines += '<line class="gridline" x1="' + padL + '" x2="' + (W - padR) + '" y1="' + gy.toFixed(1) + '" y2="' + gy.toFixed(1) + '"/>';
+      axisLabels += '<text class="axis-label" x="' + (padL - 8) + '" y="' + (gy + 3).toFixed(1) + '" text-anchor="end">$' + gv.toFixed(0) + '</text>';
+    }
+    var tickEvery = Math.max(1, Math.round(n / 8)), xLabels = "";
+    for (var i = 0; i < n; i += tickEvery) {
+      xLabels += '<text class="axis-label" x="' + x(i).toFixed(1) + '" y="' + (H - 6) + '" text-anchor="middle">' + rows[i].date.slice(2).replace(/-/g, ".") + '</text>';
+    }
+
+    var seriesMarkup = "";
+    CN_SERIES.forEach(function (s) {
+      if (!cnVisible[s.key]) return;
+      var vals = seriesVals[s.key];
+      cnPathSegments(vals, x, y).forEach(function (d) {
+        seriesMarkup += '<path d="' + d + '" fill="none" stroke="' + s.color + '" stroke-width="1.75" stroke-dasharray="5 3"/>';
+      });
+      for (var idx = 0; idx < vals.length; idx++) {
+        if (vals[idx] == null) continue;
+        seriesMarkup += cnMarkerMarkup(s.shape, x(idx), y(vals[idx]), s.color);
+      }
+    });
+
+    var svg = '<svg class="trend" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="중국 다운 시세 추이">' +
+      gridlines + axisLabels + xLabels + seriesMarkup +
+      '<line class="crosshair-line" id="cn-crosshair" x1="0" x2="0" y1="' + padT + '" y2="' + (padT + innerH) + '"/>' +
+      '<rect class="hover-capture" id="cn-hover-capture" x="' + padL + '" y="' + padT + '" width="' + innerW + '" height="' + innerH + '"/>' +
+      '</svg><div class="tooltip" id="cn-tooltip"></div>';
+
+    wrap.innerHTML = svg;
+    var svgEl = wrap.querySelector("svg");
+    var capture = document.getElementById("cn-hover-capture");
+    var tooltip = document.getElementById("cn-tooltip");
+    var crosshair = document.getElementById("cn-crosshair");
+
+    function showAt(clientX, containerRect) {
+      var svgRect = svgEl.getBoundingClientRect();
+      var relX = clientX - svgRect.left;
+      var scale = W / svgRect.width;
+      var dataX = relX * scale;
+      var idx = Math.round(((dataX - padL) / innerW) * (n - 1));
+      idx = Math.max(0, Math.min(n - 1, idx));
+      var px = x(idx);
+      crosshair.setAttribute("x1", px); crosshair.setAttribute("x2", px); crosshair.style.opacity = 1;
+      var rowsHtml = '<div style="font-weight:700;margin-bottom:4px">' + rows[idx].date + '</div>';
+      var ys = [];
+      CN_SERIES.forEach(function (s) {
+        if (!cnVisible[s.key]) return;
+        var v = seriesVals[s.key][idx];
+        rowsHtml += '<div class="row"><span class="sw" style="background:' + s.color + '"></span>' + s.label + ' <b>' + (v != null ? "$" + v.toFixed(2) : "—") + '</b></div>';
+        if (v != null) ys.push(v);
+      });
+      tooltip.innerHTML = rowsHtml;
+      var topVal = ys.length ? Math.max.apply(null, ys) : max;
+      tooltip.style.left = ((px / W) * 100) + "%";
+      tooltip.style.top = (y(topVal) / H) * containerRect.height + "px";
+      tooltip.style.opacity = 1;
+    }
+    function hide() { crosshair.style.opacity = 0; tooltip.style.opacity = 0; }
+    capture.addEventListener("mousemove", function (e) { showAt(e.clientX, wrap.getBoundingClientRect()); });
+    capture.addEventListener("mouseleave", hide);
+    capture.addEventListener("touchmove", function (e) { var t = e.touches[0]; if (t) showAt(t.clientX, wrap.getBoundingClientRect()); }, { passive: true });
+    capture.addEventListener("touchend", hide);
+  }
+
+  function renderCnTable() {
+    var rows = cnFilteredRows();
+    renderCnChart(rows);
+    var body = document.getElementById("cn-table-body");
+    if (!rows.length) {
+      body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px;">선택한 기간에 데이터가 없습니다</td></tr>';
+    } else {
+      body.innerHTML = rows.slice().reverse().map(function (r) {
+        return '<tr>' +
+          '<td>' + r.date + '</td>' +
+          '<td class="num cn-price">' + cnPriceCell(r.s1_goose, "s1_goose", r.date, r.s1_goose_edited) + '</td>' +
+          '<td class="num cn-price">' + cnPriceCell(r.s1_duck, "s1_duck", r.date, r.s1_duck_edited) + '</td>' +
+          '<td class="num cn-price">' + cnPriceCell(r.s2_goose, "s2_goose", r.date, r.s2_goose_edited) + '</td>' +
+          '<td class="num cn-price">' + cnPriceCell(r.s2_duck, "s2_duck", r.date, r.s2_duck_edited) + '</td>' +
+          '<td class="num" style="font-family:var(--font-mono);font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px;">' + r.fx.toFixed(4) + '</td>' +
+          '</tr>';
+      }).join("");
+    }
+
+    if (adminMode) {
+      body.querySelectorAll("[data-cn-field]").forEach(function (input) {
+        input.addEventListener("change", function () {
+          var d = input.getAttribute("data-cn-date");
+          var f = input.getAttribute("data-cn-field");
+          var v = parseFloat(input.value);
+          cnOverrides[d] = cnOverrides[d] || {};
+          if (!isNaN(v)) { cnOverrides[d][f] = v; } else { delete cnOverrides[d][f]; }
+          saveCnOverrides(cnOverrides);
+          showToast("중국 다운 시세가 저장되었습니다");
+          renderCnTable();
+        });
+      });
+    }
+
+    document.getElementById("fx-rate-label").textContent = "1 CNY ≈ $" + FX.usdPerCny.toFixed(4) + " (" + FX.date + " 기준)";
+    document.getElementById("cn-updated").textContent = "최근 갱신: " + (CN_SITE1_HISTORY[CN_SITE1_HISTORY.length - 1] || {}).date + " · 주 1회 자동 갱신";
+    document.getElementById("cn-blocker").innerHTML = CN_SITE2_HISTORY.length
+      ? ""
+      : '<span class="pending"><span class="dot"></span>시세사이트 2는 자동 수집을 하지 않아 관리자 모드에서 수동 입력이 필요합니다</span>';
+  }
+
+  document.getElementById("cn-filter").addEventListener("click", function (e) {
+    var btn = e.target.closest(".chip[data-range]");
+    if (!btn) return;
+    document.querySelectorAll("#cn-filter .chip").forEach(function (c) { c.classList.remove("active"); });
+    btn.classList.add("active");
+    cnRangeWeeks = btn.getAttribute("data-range");
+    cnCustomRange = null;
+    renderCnTable();
+  });
+  document.getElementById("cn-range-apply").addEventListener("click", function () {
+    var s = document.getElementById("cn-start").value;
+    var eD = document.getElementById("cn-end").value;
+    if (!s || !eD) return;
+    cnCustomRange = { start: s, end: eD };
+    cnRangeWeeks = "custom";
+    document.querySelectorAll("#cn-filter .chip").forEach(function (c) { c.classList.remove("active"); });
+    renderCnTable();
+  });
+
+  document.getElementById("cn-legend").addEventListener("click", function (e) {
+    var btn = e.target.closest(".legend-item");
+    if (!btn) return;
+    var series = btn.getAttribute("data-series");
+    cnVisible[series] = !cnVisible[series];
+    btn.classList.toggle("off", !cnVisible[series]);
+    renderCnChart(cnFilteredRows());
+  });
+
+  (function () {
+    var cnChartWrap = document.getElementById("cn-chart-wrap");
+    var CN_MIN_ZOOM_WEEKS = 4;
+    cnChartWrap.addEventListener("wheel", function (e) {
+      e.preventDefault();
+      var total = cnMergedRows().length;
+      if (total < 2) return;
+      var current = (cnRangeWeeks === "all" || cnRangeWeeks === "custom") ? total : parseInt(cnRangeWeeks, 10);
+      var factor = e.deltaY < 0 ? 0.85 : 1 / 0.85;
+      var next = Math.round(current * factor);
+      next = Math.max(CN_MIN_ZOOM_WEEKS, Math.min(total, next));
+      cnCustomRange = null;
+      cnRangeWeeks = next >= total ? "all" : String(next);
+      document.querySelectorAll("#cn-filter .chip").forEach(function (c) {
+        c.classList.toggle("active", c.getAttribute("data-range") === cnRangeWeeks);
+      });
+      renderCnChart(cnFilteredRows());
+    }, { passive: false });
+  })();
+
+  /* ---------------- 표 1: K2 시세 ---------------- */
+  // 초기 데이터 — "DOWN 가격동향 계속~ - 복사본.xlsx" 1번 시트에서 추출 (날짜별 평균, USD/kg)
+  var K2_SEED = [
+    { date: "2022-07-05", goose: 68.82, duck: 40.63 },
+    { date: "2022-07-19", goose: 69.8, duck: 40.65 },
+    { date: "2022-08-10", goose: 70.38, duck: 41.83 },
+    { date: "2022-08-24", goose: 72.07, duck: 42.33 },
+    { date: "2022-09-07", goose: 72.57, duck: 42.17 },
+    { date: "2023-01-18", goose: 70.27, duck: 35.49 },
+    { date: "2023-01-31", goose: 71.27, duck: 35.16 },
+    { date: "2023-02-09", goose: 70.88, duck: 37.65 },
+    { date: "2023-02-23", goose: 74.8, duck: 39.6 },
+    { date: "2023-03-09", goose: 75.55, duck: 40.77 },
+    { date: "2023-03-30", goose: 76.12, duck: 40 },
+    { date: "2023-04-17", goose: 75.87, duck: 39.2 },
+    { date: "2023-05-04", goose: 77.4, duck: 39.4 },
+    { date: "2023-05-18", goose: 77.32, duck: 39.32 },
+    { date: "2023-06-01", goose: 77.4, duck: 39.15 },
+    { date: "2023-06-15", goose: 75.48, duck: 38.23 },
+    { date: "2023-06-29", goose: 77.2, duck: 38.13 },
+    { date: "2023-07-13", goose: 77.18, duck: 37.88 },
+    { date: "2023-07-27", goose: 77.22, duck: 37.88 },
+    { date: "2023-08-17", goose: 77.63, duck: 37.27 },
+    { date: "2023-08-31", goose: 77.8, duck: 37.32 },
+    { date: "2023-09-14", goose: 77.38, duck: 37.48 },
+    { date: "2023-09-22", goose: 72.06, duck: 41.26 },
+    { date: "2023-10-04", goose: 78.62, duck: 37.15 },
+    { date: "2023-10-05", goose: 73.19, duck: 38.95 },
+    { date: "2023-10-22", goose: 72.94, duck: 37.91 },
+    { date: "2023-10-26", goose: 75.82, duck: 37.07 },
+    { date: "2023-11-02", goose: 72.02, duck: 35.93 },
+    { date: "2023-11-09", goose: 76.03, duck: 36.98 },
+    { date: "2023-11-16", goose: 71.11, duck: 35.09 },
+    { date: "2023-11-27", goose: 77.38, duck: 37.03 },
+    { date: "2023-11-30", goose: 70.01, duck: 34.65 },
+    { date: "2023-12-13", goose: 69.98, duck: 34.19 },
+    { date: "2023-12-27", goose: 70.1, duck: 35.29 },
+    { date: "2024-01-10", goose: 85.95, duck: 39.88 },
+    { date: "2024-01-25", goose: 91.88, duck: 42.15 },
+    { date: "2024-02-07", goose: 100.32, duck: 45.98 },
+    { date: "2024-02-21", goose: 105.07, duck: 47.87 },
+    { date: "2024-03-06", goose: 107.4, duck: 49.12 },
+    { date: "2024-03-18", goose: 108.48, duck: 49.23 },
+    { date: "2024-04-03", goose: 109.97, duck: 48.38 },
+    { date: "2024-04-17", goose: 109.97, duck: 48.47 },
+    { date: "2024-05-09", goose: 110.5, duck: 46.72 },
+    { date: "2024-05-22", goose: 114.83, duck: 48.05 },
+    { date: "2024-06-05", goose: 125.18, duck: 54.68 },
+    { date: "2024-06-19", goose: 126.85, duck: 55.68 },
+    { date: "2024-07-03", goose: 131.18, duck: 56.52 },
+    { date: "2024-07-25", goose: 131.18, duck: 56.52 },
+    { date: "2024-08-07", goose: 126.82, duck: 55.35 },
+    { date: "2024-08-22", goose: 125.15, duck: 54.02 },
+    { date: "2024-09-06", goose: 126.02, duck: 54.43 },
+    { date: "2024-09-27", goose: 123.35, duck: 56.13 },
+    { date: "2024-10-15", goose: 117.4, duck: 55.13 },
+    { date: "2024-10-28", goose: 115.83, duck: 54.5 },
+    { date: "2024-11-15", goose: 108.45, duck: 51.43 },
+    { date: "2024-11-27", goose: 101.63, duck: 48.2 },
+    { date: "2024-12-13", goose: 93.78, duck: 44.65 },
+    { date: "2024-12-14", goose: 82.97, duck: 39 },
+    { date: "2024-12-27", goose: 95.2, duck: 45.77 },
+    { date: "2024-12-28", goose: 84.05, duck: 39.5 },
+    { date: "2025-01-09", goose: 93.73, duck: 45.27 },
+    { date: "2025-02-13", goose: 91.72, duck: 45.12 },
+    { date: "2025-02-28", goose: 88.42, duck: 44.62 },
+    { date: "2025-03-13", goose: 88.5, duck: 44.37 },
+    { date: "2025-04-10", goose: 85.42, duck: 43.07 },
+    { date: "2025-04-17", goose: 84.52, duck: 42.78 },
+    { date: "2025-05-01", goose: 84.18, duck: 43.03 },
+    { date: "2025-05-16", goose: 83.07, duck: 43 },
+    { date: "2025-05-29", goose: 85.83, duck: 45.43 },
+    { date: "2025-06-12", goose: 87.33, duck: 46.5 },
+    { date: "2025-06-25", goose: 86.77, duck: 47.13 },
+    { date: "2025-07-10", goose: 85.13, duck: 44.45 },
+    { date: "2025-07-24", goose: 82.45, duck: 45.2 },
+    { date: "2025-08-07", goose: 82.1, duck: 45.53 },
+    { date: "2025-08-21", goose: 83.6, duck: 47.47 },
+    { date: "2025-09-04", goose: 85.01, duck: 48.17 },
+    { date: "2025-09-17", goose: 82.73, duck: 47.08 },
+    { date: "2025-10-02", goose: 82.8, duck: 47.23 },
+    { date: "2025-10-16", goose: 85.54, duck: 50.23 },
+    { date: "2025-10-29", goose: 88.69, duck: 54.2 },
+    { date: "2025-11-14", goose: 89.46, duck: 55.47 },
+    { date: "2025-11-27", goose: 89.47, duck: 54.85 },
+    { date: "2025-12-11", goose: 87.48, duck: 52.52 },
+    { date: "2025-12-29", goose: 84.86, duck: 52.1 },
+    { date: "2026-01-09", goose: 84.05, duck: 51.16 },
+    { date: "2026-01-29", goose: 85.34, duck: 53.32 },
+    { date: "2026-02-04", goose: 85.63, duck: 53.33 },
+    { date: "2026-02-20", goose: 86.94, duck: 54.18 },
+    { date: "2026-03-12", goose: 92.98, duck: 59.33 },
+    { date: "2026-04-02", goose: 94.84, duck: 59.53 },
+    { date: "2026-04-20", goose: 96.48, duck: 61.14 },
+    { date: "2026-04-30", goose: 96.89, duck: 61.84 },
+    { date: "2026-05-21", goose: 100.06, duck: 61.57 },
+    { date: "2026-06-19", goose: 103.28, duck: 61.4 },
+    { date: "2026-07-09", goose: 103.66, duck: 62.18 },
+    { date: "2026-07-30", goose: 102.6, duck: 59.6 }
+  ];
+
+  var K2_STORAGE_KEY = "downsise_k2_custom_v1";
+  function loadK2Custom() {
+    try { return JSON.parse(localStorage.getItem(K2_STORAGE_KEY)) || []; } catch (e) { return []; }
+  }
+  function saveK2Custom(c) { localStorage.setItem(K2_STORAGE_KEY, JSON.stringify(c)); }
+  var k2Custom = loadK2Custom();
+  var k2Visible = { goose: true, duck: true };
+  var k2RangeDays = null; // null = 전체
+  var k2CustomRange = null; // { start, end }
+  var K2_MIN_ZOOM_DAYS = 30;
+
+  function k2Rows() {
+    var byDate = {};
+    K2_SEED.forEach(function (r) { byDate[r.date] = { date: r.date, goose: r.goose, duck: r.duck }; });
+    k2Custom.forEach(function (r) { byDate[r.date] = { date: r.date, goose: r.goose, duck: r.duck }; });
+    return Object.keys(byDate).sort().map(function (d) { return byDate[d]; });
+  }
+
+  function k2MonthsAgoDays(lastDateStr, months) {
+    var last = new Date(lastDateStr);
+    var target = new Date(last);
+    target.setMonth(target.getMonth() - months);
+    return Math.round((last - target) / 86400000);
+  }
+
+  function k2FilteredRows() {
+    var rows = k2Rows();
+    if (!rows.length) return rows;
+    if (k2CustomRange) {
+      return rows.filter(function (r) { return r.date >= k2CustomRange.start && r.date <= k2CustomRange.end; });
+    }
+    if (k2RangeDays != null) {
+      var lastDate = rows[rows.length - 1].date;
+      var cutoff = new Date(lastDate);
+      cutoff.setDate(cutoff.getDate() - k2RangeDays);
+      var cutoffStr = cutoff.toISOString().slice(0, 10);
+      var filtered = rows.filter(function (r) { return r.date >= cutoffStr; });
+      return filtered.length ? filtered : rows.slice(-2);
+    }
+    return rows;
+  }
+
+  function renderK2Stats(rows) {
+    var last = rows[rows.length - 1];
+    var prev = rows[rows.length - 2] || last;
+    function fill(prefix, val, prevVal) {
+      document.getElementById("k2-" + prefix + "-latest").innerHTML = "$" + val.toFixed(2) + '<span class="unit">/kg</span>';
+      var di = deltaInfo(val, prevVal);
+      var el = document.getElementById("k2-" + prefix + "-delta");
+      el.className = "delta " + di.cls;
+      el.textContent = di.arrow + " " + (di.pct >= 0 ? "+" : "") + di.pct.toFixed(1) + "% (" + last.date + ")";
+    }
+    fill("goose", last.goose, prev.goose);
+    fill("duck", last.duck, prev.duck);
+  }
+
+  function renderK2Chart(rows) {
+    var W = 1000, H = 260, padL = 46, padR = 16, padT = 16, padB = 26;
+    var innerW = W - padL - padR, innerH = H - padT - padB;
+    var n = rows.length;
+    var wrap = document.getElementById("k2-chart-wrap");
+    var goose = rows.map(function (r) { return r.goose; });
+    var duck = rows.map(function (r) { return r.duck; });
+    var visibleVals = [];
+    if (k2Visible.goose) visibleVals = visibleVals.concat(goose);
+    if (k2Visible.duck) visibleVals = visibleVals.concat(duck);
+
+    if (!visibleVals.length) {
+      wrap.innerHTML = '<div style="padding:40px 0;text-align:center;color:var(--muted);font-size:13px;">표시할 항목이 없습니다 — 위 범례에서 구스 또는 덕을 켜주세요.</div>';
+      return;
+    }
+
+    var min = Math.min.apply(null, visibleVals), max = Math.max.apply(null, visibleVals);
+    var pad = (max - min) * 0.1 || max * 0.1 || 1;
+    min -= pad; max += pad;
+
+    var denom = n > 1 ? (n - 1) : 1;
+    function x(i) { return n > 1 ? padL + (innerW * i) / denom : padL + innerW / 2; }
+    function y(v) { return padT + innerH - ((v - min) / (max - min)) * innerH; }
+    function pathFor(series) {
+      return series.map(function (v, i) { return (i === 0 ? "M" : "L") + x(i).toFixed(1) + "," + y(v).toFixed(1); }).join(" ");
+    }
+    function areaFor(series) {
+      return pathFor(series) + " L" + x(n - 1).toFixed(1) + "," + (padT + innerH) + " L" + x(0).toFixed(1) + "," + (padT + innerH) + " Z";
+    }
+
+    var gridCount = 4, gridlines = "", axisLabels = "";
+    for (var g = 0; g <= gridCount; g++) {
+      var gv = min + ((max - min) * g) / gridCount;
+      var gy = y(gv);
+      gridlines += '<line class="gridline" x1="' + padL + '" x2="' + (W - padR) + '" y1="' + gy.toFixed(1) + '" y2="' + gy.toFixed(1) + '"/>';
+      axisLabels += '<text class="axis-label" x="' + (padL - 8) + '" y="' + (gy + 3).toFixed(1) + '" text-anchor="end">$' + gv.toFixed(0) + '</text>';
+    }
+    var tickEvery = Math.max(1, Math.round(n / 8)), xLabels = "";
+    for (var i = 0; i < n; i += tickEvery) {
+      var lbl = rows[i].date.slice(2).replace(/-/g, ".");
+      xLabels += '<text class="axis-label" x="' + x(i).toFixed(1) + '" y="' + (H - 6) + '" text-anchor="middle">' + lbl + '</text>';
+    }
+
+    var seriesMarkup = "";
+    if (k2Visible.goose) {
+      seriesMarkup += '<path class="area-goose" d="' + areaFor(goose) + '"/>';
+    }
+    if (k2Visible.duck) {
+      seriesMarkup += '<path class="area-duck" d="' + areaFor(duck) + '"/>';
+    }
+    if (k2Visible.goose) {
+      seriesMarkup += '<path class="line-goose" d="' + pathFor(goose) + '"/>' +
+        '<circle class="endpoint" cx="' + x(n - 1).toFixed(1) + '" cy="' + y(goose[n - 1]).toFixed(1) + '" r="4" fill="var(--series-goose)"/>';
+    }
+    if (k2Visible.duck) {
+      seriesMarkup += '<path class="line-duck" d="' + pathFor(duck) + '"/>' +
+        '<circle class="endpoint" cx="' + x(n - 1).toFixed(1) + '" cy="' + y(duck[n - 1]).toFixed(1) + '" r="4" fill="var(--series-duck)"/>';
+    }
+
+    var svg =
+      '<svg class="trend" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="K2 시세 구스·덕 추이">' +
+      gridlines + axisLabels + xLabels + seriesMarkup +
+      '<line class="crosshair-line" id="k2-crosshair" x1="0" x2="0" y1="' + padT + '" y2="' + (padT + innerH) + '"/>' +
+      (k2Visible.goose ? '<circle class="hover-dot" id="k2-hd-goose" r="4.5" fill="var(--series-goose)"/>' : '') +
+      (k2Visible.duck ? '<circle class="hover-dot" id="k2-hd-duck" r="4.5" fill="var(--series-duck)"/>' : '') +
+      '<rect class="hover-capture" id="k2-hover-capture" x="' + padL + '" y="' + padT + '" width="' + innerW + '" height="' + innerH + '"/>' +
+      '</svg>' +
+      '<div class="tooltip" id="k2-tooltip"></div>';
+
+    wrap.innerHTML = svg;
+    var svgEl = wrap.querySelector("svg");
+    var capture = document.getElementById("k2-hover-capture");
+    var tooltip = document.getElementById("k2-tooltip");
+    var crosshair = document.getElementById("k2-crosshair");
+    var hdGoose = document.getElementById("k2-hd-goose");
+    var hdDuck = document.getElementById("k2-hd-duck");
+
+    function showAt(clientX, containerRect) {
+      var svgRect = svgEl.getBoundingClientRect();
+      var relX = clientX - svgRect.left;
+      var scale = W / svgRect.width;
+      var dataX = relX * scale;
+      var idx = Math.round(((dataX - padL) / innerW) * (n - 1));
+      idx = Math.max(0, Math.min(n - 1, idx));
+      var px = x(idx);
+      crosshair.setAttribute("x1", px); crosshair.setAttribute("x2", px); crosshair.style.opacity = 1;
+      var rowsHtml = '<div style="font-weight:700;margin-bottom:4px">' + rows[idx].date + '</div>';
+      if (hdGoose) {
+        hdGoose.setAttribute("cx", px); hdGoose.setAttribute("cy", y(goose[idx])); hdGoose.style.opacity = 1;
+        rowsHtml += '<div class="row"><span class="sw" style="background:var(--series-goose)"></span>구스 <b>$' + goose[idx].toFixed(2) + '</b></div>';
+      }
+      if (hdDuck) {
+        hdDuck.setAttribute("cx", px); hdDuck.setAttribute("cy", y(duck[idx])); hdDuck.style.opacity = 1;
+        rowsHtml += '<div class="row"><span class="sw" style="background:var(--series-duck)"></span>덕 <b>$' + duck[idx].toFixed(2) + '</b></div>';
+      }
+      tooltip.innerHTML = rowsHtml;
+      var peak = Math.max(k2Visible.goose ? goose[idx] : -Infinity, k2Visible.duck ? duck[idx] : -Infinity);
+      tooltip.style.left = ((px / W) * 100) + "%";
+      tooltip.style.top = (y(peak) / H) * containerRect.height + "px";
+      tooltip.style.opacity = 1;
+    }
+    function hide() { crosshair.style.opacity = 0; if (hdGoose) hdGoose.style.opacity = 0; if (hdDuck) hdDuck.style.opacity = 0; tooltip.style.opacity = 0; }
+    capture.addEventListener("mousemove", function (e) { showAt(e.clientX, wrap.getBoundingClientRect()); });
+    capture.addEventListener("mouseleave", hide);
+    capture.addEventListener("touchmove", function (e) { var t = e.touches[0]; if (t) showAt(t.clientX, wrap.getBoundingClientRect()); }, { passive: true });
+    capture.addEventListener("touchend", hide);
+  }
+
+  function renderK2() {
+    var rows = k2Rows();
+    renderK2Stats(rows);
+    renderK2Chart(k2FilteredRows());
+    document.getElementById("k2-admin-panel").classList.toggle("show", adminMode);
+
+    var last = rows[rows.length - 1];
+    if (last) {
+      var parts = last.date.split("-");
+      var dateStr = parts[0] + "." + parseInt(parts[1], 10) + "." + parseInt(parts[2], 10) + " 기준";
+      document.getElementById("date-badge").innerHTML = '<span class="dot"></span>' + dateStr;
+      document.getElementById("footer-date").textContent = dateStr;
+    }
+  }
+
+  document.getElementById("k2-legend").addEventListener("click", function (e) {
+    var btn = e.target.closest(".legend-item");
+    if (!btn) return;
+    var series = btn.getAttribute("data-series");
+    k2Visible[series] = !k2Visible[series];
+    btn.classList.toggle("off", !k2Visible[series]);
+    renderK2Chart(k2FilteredRows());
+  });
+
+  function k2SetActiveChip(val) {
+    document.querySelectorAll("#k2-filter .chip").forEach(function (c) {
+      c.classList.toggle("active", c.getAttribute("data-range") === val);
+    });
+  }
+
+  document.getElementById("k2-filter").addEventListener("click", function (e) {
+    var btn = e.target.closest(".chip[data-range]");
+    if (!btn) return;
+    var val = btn.getAttribute("data-range");
+    var rows = k2Rows();
+    var lastDate = rows.length ? rows[rows.length - 1].date : null;
+    if (val === "all") { k2RangeDays = null; }
+    else if (val === "1m" && lastDate) { k2RangeDays = k2MonthsAgoDays(lastDate, 1); }
+    else if (val === "6m" && lastDate) { k2RangeDays = k2MonthsAgoDays(lastDate, 6); }
+    else if (val === "1y" && lastDate) { k2RangeDays = k2MonthsAgoDays(lastDate, 12); }
+    k2CustomRange = null;
+    k2SetActiveChip(val);
+    renderK2Chart(k2FilteredRows());
+  });
+  document.getElementById("k2-range-apply").addEventListener("click", function () {
+    var s = document.getElementById("k2-start").value;
+    var e2 = document.getElementById("k2-end").value;
+    if (!s || !e2) return;
+    k2CustomRange = { start: s, end: e2 };
+    k2RangeDays = null;
+    k2SetActiveChip(null);
+    renderK2Chart(k2FilteredRows());
+  });
+
+  (function () {
+    var k2ChartWrap = document.getElementById("k2-chart-wrap");
+    k2ChartWrap.addEventListener("wheel", function (e) {
+      e.preventDefault();
+      var rows = k2Rows();
+      if (rows.length < 2) return;
+      var totalDays = Math.round((new Date(rows[rows.length - 1].date) - new Date(rows[0].date)) / 86400000);
+      var current = k2RangeDays != null ? k2RangeDays : totalDays;
+      var factor = e.deltaY < 0 ? 0.85 : 1 / 0.85;
+      var next = Math.round(current * factor);
+      next = Math.max(K2_MIN_ZOOM_DAYS, Math.min(totalDays, next));
+      k2RangeDays = next >= totalDays ? null : next;
+      k2CustomRange = null;
+      k2SetActiveChip(k2RangeDays == null ? "all" : null);
+      renderK2Chart(k2FilteredRows());
+    }, { passive: false });
+  })();
+
+  document.getElementById("k2-add-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var fd = new FormData(e.target);
+    var date = fd.get("date");
+    var goose = parseFloat(fd.get("goose"));
+    var duck = parseFloat(fd.get("duck"));
+    if (!date || isNaN(goose) || isNaN(duck)) return;
+    k2Custom = k2Custom.filter(function (r) { return r.date !== date; });
+    k2Custom.push({ date: date, goose: goose, duck: duck });
+    saveK2Custom(k2Custom);
+    e.target.reset();
+    showToast("K2 시세가 추가되었습니다");
+    renderK2();
+  });
+
+  /* ---------------- toast ---------------- */
+  var toastTimer;
+  function showToast(msg) {
+    var t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove("show"); }, 2200);
+  }
+
+  /* ---------------- glossary carousel ---------------- */
+  var glossScroll = document.getElementById("glossary-scroll");
+  document.getElementById("gloss-prev").addEventListener("click", function () {
+    glossScroll.scrollBy({ left: -256, behavior: "smooth" });
+  });
+  document.getElementById("gloss-next").addEventListener("click", function () {
+    glossScroll.scrollBy({ left: 256, behavior: "smooth" });
+  });
+
+  /* ---------------- admin password gate ---------------- */
+  var ADMIN_PASSWORD = "0129";
+  var pwOverlay = document.getElementById("pw-overlay");
+  var pwInput = document.getElementById("pw-input");
+  var pwError = document.getElementById("pw-error");
+  var adminToggleBtn = document.getElementById("admin-toggle");
+
+  function setAdminMode(on) {
+    adminMode = on;
+    adminToggleBtn.classList.toggle("on", adminMode);
+    adminToggleBtn.setAttribute("aria-pressed", String(adminMode));
+    renderCnTable();
+    renderK2();
+  }
+
+  function openPwModal() {
+    pwError.textContent = "";
+    pwInput.value = "";
+    pwOverlay.classList.add("show");
+    pwInput.focus();
+  }
+  function closePwModal() {
+    pwOverlay.classList.remove("show");
+    pwError.textContent = "";
+    pwInput.value = "";
+  }
+  function tryPwConfirm() {
+    if (pwInput.value === ADMIN_PASSWORD) {
+      closePwModal();
+      setAdminMode(true);
+    } else {
+      pwError.textContent = "비밀번호가 틀렸습니다";
+      pwInput.value = "";
+      pwInput.focus();
+    }
+  }
+
+  adminToggleBtn.addEventListener("click", function () {
+    if (adminMode) { setAdminMode(false); } else { openPwModal(); }
+  });
+  document.getElementById("pw-confirm").addEventListener("click", tryPwConfirm);
+  document.getElementById("pw-cancel").addEventListener("click", closePwModal);
+  pwInput.addEventListener("keydown", function (e) { if (e.key === "Enter") tryPwConfirm(); });
+  pwOverlay.addEventListener("click", function (e) { if (e.target === pwOverlay) closePwModal(); });
+
+  /* ---------------- K2 엑셀 업로드 (신규 날짜만 반영) ---------------- */
+  function colLettersToIndex(letters) {
+    var n = 0;
+    for (var i = 0; i < letters.length; i++) { n = n * 26 + (letters.charCodeAt(i) - 64); }
+    return n;
+  }
+  function excelSerialToISODate(serial) {
+    var ms = Math.round((serial - 25569) * 86400 * 1000);
+    var d = new Date(ms);
+    var y = d.getUTCFullYear(), m = d.getUTCMonth() + 1, day = d.getUTCDate();
+    return y + "-" + (m < 10 ? "0" + m : m) + "-" + (day < 10 ? "0" + day : day);
+  }
+
+  async function inflateRawRaw(bytes) {
+    var stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+    var buf = await new Response(stream).arrayBuffer();
+    return new Uint8Array(buf);
+  }
+
+  async function readZipEntry(buf, dv, name) {
+    // find End Of Central Directory
+    var eocdSig = 0x06054b50, i = buf.length - 22;
+    for (; i >= 0; i--) { if (dv.getUint32(i, true) === eocdSig) break; }
+    if (i < 0) throw new Error("ZIP EOCD not found");
+    var cdOffset = dv.getUint32(i + 16, true);
+    var cdEntries = dv.getUint16(i + 10, true);
+    var p = cdOffset;
+    for (var e = 0; e < cdEntries; e++) {
+      if (dv.getUint32(p, true) !== 0x02014b50) break;
+      var method = dv.getUint16(p + 10, true);
+      var compSize = dv.getUint32(p + 20, true);
+      var nameLen = dv.getUint16(p + 28, true);
+      var extraLen = dv.getUint16(p + 30, true);
+      var commentLen = dv.getUint16(p + 32, true);
+      var localOffset = dv.getUint32(p + 42, true);
+      var entryName = new TextDecoder("utf-8").decode(buf.slice(p + 46, p + 46 + nameLen));
+      if (entryName === name) {
+        var lp = localOffset;
+        var lNameLen = dv.getUint16(lp + 26, true);
+        var lExtraLen = dv.getUint16(lp + 28, true);
+        var dataStart = lp + 30 + lNameLen + lExtraLen;
+        var compBytes = buf.slice(dataStart, dataStart + compSize);
+        var raw = method === 0 ? compBytes : await inflateRawRaw(compBytes);
+        return new TextDecoder("utf-8").decode(raw);
+      }
+      p += 46 + nameLen + extraLen + commentLen;
+    }
+    return null;
+  }
+
+  function parseSharedStrings(xml) {
+    if (!xml) return [];
+    var doc = new DOMParser().parseFromString(xml, "application/xml");
+    var siList = doc.getElementsByTagName("si");
+    var out = [];
+    for (var i = 0; i < siList.length; i++) {
+      var ts = siList[i].getElementsByTagName("t");
+      var text = "";
+      for (var j = 0; j < ts.length; j++) { text += ts[j].textContent; }
+      out.push(text);
+    }
+    return out;
+  }
+
+  function parseSheetGrid(xml, sharedStrings) {
+    var doc = new DOMParser().parseFromString(xml, "application/xml");
+    var rowEls = doc.getElementsByTagName("row");
+    var grid = {};
+    for (var i = 0; i < rowEls.length; i++) {
+      var rowEl = rowEls[i];
+      var rNum = parseInt(rowEl.getAttribute("r"), 10);
+      var cells = rowEl.getElementsByTagName("c");
+      var rowObj = {};
+      for (var j = 0; j < cells.length; j++) {
+        var c = cells[j];
+        var ref = c.getAttribute("r") || "";
+        var colLetters = ref.replace(/[0-9]/g, "");
+        var colIdx = colLettersToIndex(colLetters);
+        var type = c.getAttribute("t");
+        var val;
+        if (type === "inlineStr") {
+          var isEl = c.getElementsByTagName("is")[0];
+          val = isEl ? isEl.textContent : "";
+        } else {
+          var vEl = c.getElementsByTagName("v")[0];
+          if (!vEl) continue;
+          var raw = vEl.textContent;
+          val = type === "s" ? sharedStrings[parseInt(raw, 10)] : parseFloat(raw);
+        }
+        rowObj[colIdx] = val;
+      }
+      grid[rNum] = rowObj;
+    }
+    return grid;
+  }
+
+  function extractSpeciesSeries(grid, keyword) {
+    var rowNums = Object.keys(grid).map(Number).sort(function (a, b) { return a - b; });
+    var dataRowNum = null;
+    for (var i = 0; i < rowNums.length; i++) {
+      var row = grid[rowNums[i]];
+      var label = row[1];
+      if (typeof label === "string" && label.toUpperCase().indexOf(keyword) !== -1) { dataRowNum = rowNums[i]; break; }
+    }
+    if (dataRowNum == null) return [];
+    // 가장 가까운 위쪽 "날짜 헤더" 행 찾기 (대부분 셀이 20000~80000 범위 숫자인 행)
+    var headerRowNum = null;
+    for (var k = rowNums.indexOf(dataRowNum) - 1; k >= 0; k--) {
+      var r = rowNums[k];
+      var cells = grid[r];
+      var big = 0, total = 0;
+      for (var col in cells) {
+        var v = cells[col];
+        if (typeof v === "number") { total++; if (v > 20000 && v < 80000) big++; }
+      }
+      if (total >= 5 && big / total > 0.7) { headerRowNum = r; break; }
+    }
+    if (headerRowNum == null) return [];
+    var headerRow = grid[headerRowNum];
+    var dataRow = grid[dataRowNum];
+    var out = [];
+    for (var col2 in headerRow) {
+      var hv = headerRow[col2];
+      var dv2 = dataRow[col2];
+      if (typeof hv === "number" && hv > 20000 && hv < 80000 && typeof dv2 === "number") {
+        out.push({ date: excelSerialToISODate(hv), value: Math.round(dv2 * 100) / 100 });
+      }
+    }
+    return out;
+  }
+
+  async function handleK2Upload(file) {
+    var statusEl = document.getElementById("k2-upload-status");
+    statusEl.textContent = "엑셀 파일을 읽는 중...";
+    try {
+      var buf = new Uint8Array(await file.arrayBuffer());
+      var dv = new DataView(buf.buffer);
+      var sharedXml = await readZipEntry(buf, dv, "xl/sharedStrings.xml");
+      var sheetXml = await readZipEntry(buf, dv, "xl/worksheets/sheet1.xml");
+      if (!sheetXml) throw new Error("첫 번째 시트를 찾을 수 없습니다");
+      var sharedStrings = parseSharedStrings(sharedXml);
+      var grid = parseSheetGrid(sheetXml, sharedStrings);
+
+      var goose = extractSpeciesSeries(grid, "GOOSE");
+      var duck = extractSpeciesSeries(grid, "DUCK");
+      var duckByDate = {};
+      duck.forEach(function (r) { duckByDate[r.date] = r.value; });
+
+      var existing = {};
+      k2Rows().forEach(function (r) { existing[r.date] = true; });
+
+      var added = 0;
+      goose.forEach(function (g) {
+        if (existing[g.date] || duckByDate[g.date] == null) return;
+        k2Custom = k2Custom.filter(function (r) { return r.date !== g.date; });
+        k2Custom.push({ date: g.date, goose: g.value, duck: duckByDate[g.date] });
+        existing[g.date] = true;
+        added++;
+      });
+
+      if (added > 0) {
+        saveK2Custom(k2Custom);
+        renderK2();
+        statusEl.textContent = "새 시세 " + added + "건이 추가되었습니다.";
+        showToast("새 시세 " + added + "건이 추가되었습니다");
+      } else {
+        statusEl.textContent = "새로 추가된 날짜가 없습니다 (이미 반영된 데이터일 수 있습니다).";
+      }
+    } catch (err) {
+      statusEl.textContent = "엑셀 파일을 읽는 중 오류가 발생했습니다: " + err.message;
+    }
+  }
+
+  document.getElementById("k2-upload-btn").addEventListener("click", function () {
+    document.getElementById("k2-upload-input").click();
+  });
+  document.getElementById("k2-upload-input").addEventListener("change", function (e) {
+    var file = e.target.files[0];
+    if (file) handleK2Upload(file);
+    e.target.value = "";
+  });
+
+  /* ---------------- csv export (via window.claude.downloads) ---------------- */
+  function csvEscape(v) {
+    var s = v == null ? "" : String(v);
+    if (/[",\n\r]/.test(s)) { s = '"' + s.replace(/"/g, '""') + '"'; }
+    return s;
+  }
+  function rowsToCsv(header, rows) {
+    var lines = [header].concat(rows).map(function (r) { return r.map(csvEscape).join(","); });
+    return "﻿" + lines.join("\r\n");
+  }
+  function todayCompact() {
+    var d = new Date();
+    return d.getFullYear() + ("0" + (d.getMonth() + 1)).slice(-2) + ("0" + d.getDate()).slice(-2);
+  }
+  function saveCsv(filename, csvText) {
+    if (!window.claude || !window.claude.downloads) {
+      showToast("이 화면에서는 다운로드 기능을 사용할 수 없습니다");
+      return;
+    }
+    window.claude.downloads.save({ filename: filename, data: csvText }).then(function () {
+      showToast("다운로드가 시작되었습니다");
+    }).catch(function (err) {
+      if (err && err.code === "declined") return;
+      var msg = "다운로드에 실패했습니다";
+      if (err && (err.code === "extension_not_enabled" || err.code === "rejected_extension")) msg = "이 화면에서는 csv 다운로드가 지원되지 않습니다";
+      else if (err && err.code === "too_large") msg = "파일이 너무 커서 다운로드할 수 없습니다";
+      else if (err && err.code === "rate_limited") msg = "잠시 후 다시 시도해주세요";
+      showToast(msg);
+    });
+  }
+
+  document.getElementById("k2-download-btn").addEventListener("click", function () {
+    var header = ["날짜"];
+    if (k2Visible.goose) header.push("구스 (USD/kg)");
+    if (k2Visible.duck) header.push("덕 (USD/kg)");
+    var rows = k2FilteredRows().map(function (r) {
+      var row = [r.date];
+      if (k2Visible.goose) row.push(r.goose);
+      if (k2Visible.duck) row.push(r.duck);
+      return row;
+    });
+    saveCsv("K2_시세_" + todayCompact() + ".csv", rowsToCsv(header, rows));
+  });
+
+  document.getElementById("cn-download-btn").addEventListener("click", function () {
+    var header = ["날짜", "시세사이트1 구스(USD)", "시세사이트1 구스(CNY)", "시세사이트1 덕(USD)", "시세사이트1 덕(CNY)", "시세사이트2 구스(USD)", "시세사이트2 구스(CNY)", "시세사이트2 덕(USD)", "시세사이트2 덕(CNY)", "적용환율(CNY→USD)"];
+    var rows = cnFilteredRows().map(function (r) {
+      function pair(cny) { return cny == null ? ["", ""] : [Math.round(cny * FX.usdPerCny * 100) / 100, cny]; }
+      var s1g = pair(r.s1_goose), s1d = pair(r.s1_duck), s2g = pair(r.s2_goose), s2d = pair(r.s2_duck);
+      return [r.date].concat(s1g, s1d, s2g, s2d, [r.fx]);
+    });
+    saveCsv("중국_다운_시세_" + todayCompact() + ".csv", rowsToCsv(header, rows));
+  });
+
+  /* ---------------- wiring ---------------- */
+  function renderAll() {
+    renderCnTable();
+    renderK2();
+  }
+
+  renderAll();
+})();
+</script>
