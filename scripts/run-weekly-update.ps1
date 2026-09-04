@@ -13,6 +13,8 @@ try {
     Set-Location -LiteralPath $projectRoot
     if (-not (Test-Path -LiteralPath $git)) { throw "Git을 찾을 수 없습니다: $git" }
     if (-not (Test-Path -LiteralPath $node)) { throw "Node.js를 찾을 수 없습니다: $node" }
+    $excel = Get-ChildItem -LiteralPath $projectRoot -File -Filter "*.xlsx" | Sort-Object Name | Select-Object -First 1
+    if ($null -eq $excel) { throw "프로젝트 폴더에서 엑셀 파일을 찾을 수 없습니다." }
 
     & $git pull --rebase --autostash origin main
     if ($LASTEXITCODE -ne 0) { throw "git pull 실패 (exit $LASTEXITCODE)" }
@@ -20,7 +22,7 @@ try {
     & $node (Join-Path $PSScriptRoot "update-site.mjs")
     if ($LASTEXITCODE -ne 0) { throw "사이트 데이터 갱신 실패 (exit $LASTEXITCODE)" }
 
-    & $git add -- "DOWN 가격동향 계속~ - 복사본.xlsx" "down-sise.html" "index.html" "data/cn-down-prices.json"
+    & $git add -- $excel.Name "down-sise.html" "index.html" "data/cn-down-prices.json"
     if ($LASTEXITCODE -ne 0) { throw "git add 실패 (exit $LASTEXITCODE)" }
 
     & $git diff --cached --quiet
