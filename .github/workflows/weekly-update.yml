@@ -1,0 +1,40 @@
+name: Weekly down price update
+
+on:
+  schedule:
+    # Monday 09:30 Asia/Seoul (00:30 UTC). The local task runs at 09:00 first.
+    - cron: "30 0 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: weekly-down-price-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Update Excel, China prices, FX, and mirrors
+        run: node scripts/update-site.mjs
+      - name: Validate generated files
+        run: node scripts/update-site.mjs --dry-run --skip-network
+      - name: Commit and push when data changed
+        shell: bash
+        run: |
+          if git diff --quiet -- down-sise.html index.html data/cn-down-prices.json; then
+            echo "No generated data changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add down-sise.html index.html data/cn-down-prices.json
+          git commit -m "chore: weekly down price update $(date -u +%F)"
+          git push

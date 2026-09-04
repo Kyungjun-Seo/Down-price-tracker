@@ -1,0 +1,10 @@
+{
+  "name": "down-price-tracker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "update": "node scripts/update-site.mjs",
+    "update:dry-run": "node scripts/update-site.mjs --dry-run",
+    "verify": "node scripts/update-site.mjs --dry-run --skip-network"
+  }
+}

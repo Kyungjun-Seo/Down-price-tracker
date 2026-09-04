@@ -42,6 +42,14 @@ Two independent price series, both hand-maintained as inline JS array literals �
 
 Both series are rendered as hand-rolled inline SVG line/area charts (`renderK2Chart`, `renderCnChart` — no charting library), with crosshair hover tooltips, legend series toggles, mouse-wheel zoom, and preset/custom date-range filters. CSV export (`#k2-download-btn`, `#cn-download-btn`) goes through `saveCsv()`.
 
+## Automated operation
+
+- `DOWN 가격동향 계속~ - 복사본.xlsx` is tracked as the authoritative K2 source.
+- Run `node scripts/update-site.mjs` for the complete update. It extracts K2 data, crawls the four GB/T 14272-2021 China series from `en.cfd.com.cn`, refreshes CNY-to-USD, rebuilds both mirrors, and validates the result before writing.
+- Run `node scripts/update-site.mjs --dry-run --skip-network` to verify local consistency without network writes.
+- Windows Task Scheduler runs `scripts/run-weekly-update.ps1` each Monday at 09:00 Asia/Seoul and pushes the result to `main`.
+- `.github/workflows/weekly-update.yml` runs at 09:30 Asia/Seoul as a fallback using the latest workbook committed to the repository.
+
 ## Update workflow
 
 The commit history (`chore: weekly down price update <date>`) reflects a recurring process, run outside this repo, that: resyncs `down-sise.html` from the live Claude Artifact, crawls `en.cfd.com.cn` for a new as-of-dated row, appends it to both `CN_HISTORY` and `data/cn-down-prices.json` when present, refreshes `FX` to the current rate, trims history to 52 rows, rebuilds `index.html`, commits both files plus the JSON mirror together, and republishes the Artifact. When making manual data edits, follow the same invariants: keep `CN_HISTORY` and `data/cn-down-prices.json` identical in content, keep `index.html`'s body/script byte-for-byte identical to `down-sise.html`'s, and never touch `cn-down.com`.
