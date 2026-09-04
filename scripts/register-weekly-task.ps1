@@ -9,7 +9,7 @@ $action = New-ScheduledTaskAction `
     -Execute "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" `
     -Argument "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File `"$runner`"" `
     -WorkingDirectory $projectRoot
-$trigger = New-ScheduledTaskTrigger -Weekly -WeeksInterval 1 -DaysOfWeek Monday -At "09:00"
+$trigger = New-ScheduledTaskTrigger -Weekly -WeeksInterval 1 -DaysOfWeek Monday,Tuesday,Wednesday,Friday -At "09:00"
 $principal = New-ScheduledTaskPrincipal -UserId $userId -LogonType Interactive -RunLevel Limited
 $settings = New-ScheduledTaskSettingsSet `
     -StartWhenAvailable `
@@ -19,7 +19,7 @@ $settings = New-ScheduledTaskSettingsSet `
 
 Register-ScheduledTask `
     -TaskName $taskName `
-    -Description "매주 월요일 K2 엑셀과 중국 다운 시세를 갱신하고 GitHub Pages에 게시합니다." `
+    -Description "Runs Mon/Tue/Wed/Fri until the weekly workbook and China price update succeeds." `
     -Action $action `
     -Trigger $trigger `
     -Principal $principal `

@@ -22,4 +22,6 @@ Run `node scripts/update-site.mjs` from the repository root. It must:
 
 After any manual change, run `node scripts/update-site.mjs --dry-run --skip-network`. A clean generated state reports `"changed": false`.
 
+The local scheduled task runs at 09:00 on Monday, Tuesday, Wednesday, and Friday. `scripts/run-weekly-update.ps1` records a successful week in `logs/last-success.json`; later triggers in the same week must skip. A failure does not write the marker, so the next trigger retries. The following Monday starts a new weekly cycle.
+
 Do not edit `index.html` or `data/cn-down-prices.json` directly.

@@ -47,7 +47,7 @@ Both series are rendered as hand-rolled inline SVG line/area charts (`renderK2Ch
 - `DOWN 가격동향 계속~ - 복사본.xlsx` is tracked as the authoritative K2 source.
 - Run `node scripts/update-site.mjs` for the complete update. It extracts K2 data, crawls the four GB/T 14272-2021 China series from `en.cfd.com.cn`, refreshes CNY-to-USD, rebuilds both mirrors, and validates the result before writing.
 - Run `node scripts/update-site.mjs --dry-run --skip-network` to verify local consistency without network writes.
-- Windows Task Scheduler runs `scripts/run-weekly-update.ps1` each Monday at 09:00 Asia/Seoul and pushes the result to `main`.
+- Windows Task Scheduler runs `scripts/run-weekly-update.ps1` at 09:00 Asia/Seoul on Monday, Tuesday, Wednesday, and Friday. It retries until one run succeeds, skips later runs in that week, and starts a new cycle the following Monday.
 - `.github/workflows/weekly-update.yml` runs at 09:30 Asia/Seoul as a fallback using the latest workbook committed to the repository.
 
 ## Update workflow
