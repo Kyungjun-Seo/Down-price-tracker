@@ -13,7 +13,7 @@ try {
     Set-Location -LiteralPath $projectRoot
     if (-not (Test-Path -LiteralPath $git)) { throw "Git을 찾을 수 없습니다: $git" }
     if (-not (Test-Path -LiteralPath $node)) { throw "Node.js를 찾을 수 없습니다: $node" }
-    $excel = Get-ChildItem -LiteralPath $projectRoot -File -Filter "*.xlsx" | Sort-Object Name | Select-Object -First 1
+    $excel = Get-ChildItem -LiteralPath $projectRoot -File -Filter "DOWN*.xlsx" | Sort-Object Name | Select-Object -First 1
     if ($null -eq $excel) { throw "프로젝트 폴더에서 엑셀 파일을 찾을 수 없습니다." }
 
     & $git pull --rebase --autostash origin main
