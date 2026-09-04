@@ -1,6 +1,12 @@
 name: Weekly down price update
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/weekly-update.yml"
+      - "scripts/**"
+      - "package.json"
   schedule:
     # Monday 09:30 Asia/Seoul (00:30 UTC). The local task runs at 09:00 first.
     - cron: "30 0 * * 1"
