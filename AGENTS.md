@@ -24,4 +24,6 @@ After any manual change, run `node scripts/update-site.mjs --dry-run --skip-netw
 
 The local scheduled task runs at 09:00 on Monday, Tuesday, Wednesday, and Friday. `scripts/run-weekly-update.ps1` records a successful week in `logs/last-success.json`; later triggers in the same week must skip. A failure does not write the marker, so the next trigger retries. The following Monday starts a new weekly cycle.
 
+Scheduled automation uses `--allow-stale-china`. If `en.cfd.com.cn` cannot be resolved or fetched, retain the last validated China rows, continue updating K2 and FX, publish those safe changes, and do not write the weekly success marker. Every later trigger must retry China until a complete update succeeds. The default `node scripts/update-site.mjs` command remains strict.
+
 Do not edit `index.html` or `data/cn-down-prices.json` directly.

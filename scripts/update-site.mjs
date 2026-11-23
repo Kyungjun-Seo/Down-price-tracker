@@ -17,6 +17,7 @@ const FX_URL = "https://api.frankfurter.dev/v1/latest?base=CNY&symbols=USD";
 const args = new Set(process.argv.slice(2));
 const dryRun = args.has("--dry-run");
 const skipNetwork = args.has("--skip-network");
+const allowStaleChina = args.has("--allow-stale-china");
 const excelArgIndex = process.argv.indexOf("--excel");
 const excelPath = excelArgIndex >= 0 ? resolve(process.argv[excelArgIndex + 1]) : DEFAULT_EXCEL;
 
@@ -202,7 +203,8 @@ async function fetchText(url) {
     }
     if (attempt < 4) await new Promise((resolveDelay) => setTimeout(resolveDelay, attempt * 1_500));
   }
-  throw lastError;
+  const detail = lastError?.cause?.code || lastError?.code || lastError?.message || String(lastError);
+  throw new Error(`${url} request failed: ${detail}`, { cause: lastError });
 }
 
 async function fetchChinaHistory() {
@@ -300,12 +302,26 @@ async function main() {
   const k2Rows = await readK2Rows(excelPath, existingK2.length);
 
   let cnRows = existingCn;
+  let chinaStatus = skipNetwork ? "skipped" : "fresh";
+  let chinaError = null;
   let fxMatch = originalFragment.match(/var FX = \{ date: "([^"]+)", usdPerCny: ([0-9.]+) \}/);
   if (!fxMatch) throw new Error("FX 값을 찾지 못했습니다.");
   let fx = { date: fxMatch[1], usdPerCny: Number(fxMatch[2]) };
   if (!skipNetwork) {
-    const [fetchedChina, fetchedFx] = await Promise.all([fetchChinaHistory(), fetchFx()]);
-    cnRows = mergeChinaRows(existingCn, fetchedChina);
+    const [chinaResult, fetchedFx] = await Promise.all([
+      fetchChinaHistory()
+        .then((rows) => ({ rows, error: null }))
+        .catch((error) => ({ rows: null, error })),
+      fetchFx(),
+    ]);
+    if (chinaResult.error) {
+      if (!allowStaleChina) throw chinaResult.error;
+      chinaStatus = "stale";
+      chinaError = chinaResult.error.message;
+      console.warn(`[update-site] China price fetch failed; keeping existing data: ${chinaError}`);
+    } else {
+      cnRows = mergeChinaRows(existingCn, chinaResult.rows);
+    }
     fx = fetchedFx;
   }
 
@@ -339,9 +355,17 @@ async function main() {
     changed,
     excel: excelPath,
     k2: { rows: k2Rows.length, first: k2Rows[0].date, last: k2Rows.at(-1).date },
-    china: { rows: cnRows.length, first: cnRows[0].date, last: cnRows.at(-1).date },
+    china: {
+      status: chinaStatus,
+      rows: cnRows.length,
+      first: cnRows[0].date,
+      last: cnRows.at(-1).date,
+      ...(chinaError ? { error: chinaError } : {}),
+    },
     fx,
   }, null, 2));
+
+  if (chinaStatus === "stale" && !dryRun) process.exitCode = 2;
 }
 
 main().catch((error) => {
